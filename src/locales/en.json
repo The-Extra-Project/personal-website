@@ -1,79 +1,52 @@
 {
   "Index": {
-    "meta_title": "SaaS Template - The perfect SaaS template to build and scale your business with ease.",
-    "meta_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS."
+    "meta_title": "Extra Labs - A better way to map the world in 3D",
+    "meta_description": "We leverage AI and decentralized technologies to produce fresh and detailed 3D models of cities."
   },
   "Navbar": {
-    "sign_in": "Sign In",
-    "sign_up": "Sign Up",
-    "product": "Product",
-    "docs": "Docs",
+    "faq": "FAQ",
+    "discord": "Discord",
+    "waiting_list": "Waiting list",
     "blog": "Blog",
-    "community": "Community",
-    "company": "Company"
+    "contact": "Contact"
   },
   "Hero": {
-    "follow_twitter": "Follow @Ixartz on Twitter",
-    "title": "The perfect <important>SaaS template</important> to build and scale your business with ease.",
-    "description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
-    "primary_button": "Get Next.js SaaS Starter Kit",
-    "secondary_button": "Star on GitHub"
+    "subtitle": "DECENTRALIZED PHYSICAL INFRASTRUCTURE NETWORKS",
+    "title": "A better way to map the world in 3D",
+    "description": "We leverage collaborative acquisition and deep learning to produce affordable 3D models of cities and territories. Join us in changing the way maps are built around the world.",
+    "primary_button": "Join the waiting list",
+    "secondary_button": "Learn more"
   },
   "Sponsors": {
-    "title": "Sponsored by"
+    "title": "They support us"
   },
   "Features": {
-    "section_subtitle": "Features",
-    "section_title": "Unlock the Full Potential of the SaaS Template",
-    "section_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
-    "feature1_title": "Node.js",
-    "feature2_title": "React",
-    "feature3_title": "Tailwind CSS",
-    "feature4_title": "TypeScript",
-    "feature5_title": "Shadcn UI",
-    "feature6_title": "ESLint",
-    "feature_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS."
+    "section_subtitle": "",
+    "section_title": "What's the vision",
+    "section_description": "We believe that for the first time ever, 3D map data acquisition is scalable: sensors capable of collecting data are everywhere, and technological advances are making it possible to reconstruct this fragmented, heterogeneous data into detailed, evolving 3D models.",
+    "feature1_title": "Detailed and cheap 3D map data",
+    "feature2_title": "Accessible in near-real time",
+    "feature3_title": "For all industries and developers",
+    "feature_description1": "Our solution merges various perspectives of buildings and urban objects to generate detailed 3D models. These models aid analysis and create immersive 3D experiences.",
+    "feature_description2": "There's no need to launch acquisition campaigns every two years, or rely on outdated Google Maps data. Our infrastructure offers access to more recent data as the network expands.",
+    "feature_description3": "We generate the best possible source of 3D data, enabling you to transform it into incredible applications for smart cities, telecommunications, construction, and consumer experiences such as video games or navigation."
   },
-  "Pricing": {
-    "section_subtitle": "Features",
-    "section_title": "Unlock the Full Potential of the SaaS Template",
-    "section_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
-    "button_text": "Get Started"
+  "Progress": {
+    "section_subtitle": "ROADMAP",
+    "section_title": "Check out our progress",
+    "section_description": "We are preparing to release the first Minimum Viable Product (MVP) of our protocol. In the upcoming months, we will begin testing it with one of the largest regions in Europe as our partner."
   },
-  "PricingPlan": {
-    "free_plan_name": "Free",
-    "premium_plan_name": "Premium",
-    "enterprise_plan_name": "Enterprise",
-    "free_plan_description": "For individuals",
-    "premium_plan_description": "For small teams",
-    "enterprise_plan_description": "For industry leaders",
-    "feature_team_member": "{number} Team Members",
-    "feature_website": "{number} Websites",
-    "feature_storage": "{number} GB Storage",
-    "feature_transfer": "{number} TB Transfer",
-    "feature_email_support": "Email Support",
-    "plan_interval_month": "month",
-    "plan_interval_year": "year",
-    "next_renew_date": "Your subscription renews on {date}"
-  },
-  "FAQ": {
-    "question": "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
-    "answer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam aliquam enim dui, id consequat turpis ullamcorper ac. Mauris id quam dolor. Nullam eu egestas turpis. Proin risus elit, sollicitudin in mi a, accumsan euismod turpis. In euismod mi sed diam tristique hendrerit."
-  },
-  "CTA": {
-    "title": "You are ready?",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "button_text": "Get Next.js SaaS Starter Kit"
+  "Contact": {
+    "section_subtitle": "CONTACT",
+    "section_title": "Let's get in touch",
+    "section_description": "Are you a local government or a company interested in our solution? Would you like to become a potential contributor? Would you like to invest in our protocol? Get in touch with us via the email below!",
+    "button_text": "Contact us"
   },
   "Footer": {
-    "product": "Product",
-    "docs": "Docs",
+    "github": "GitHub",
     "blog": "Blog",
-    "community": "Community",
-    "company": "Company",
-    "terms_of_service": "Terms Of Service",
-    "privacy_policy": "Privacy Policy",
-    "footer_text": "© {year} {name}. Made with <author></author>."
+    "faq": "FAQ",
+    "footer_text": "© {year} Extra Labs. All right reserved."
   },
   "ProtectFallback": {
     "not_enough_permission": "You do not have the permissions to perform this action"

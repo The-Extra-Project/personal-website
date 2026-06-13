@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
 import { Background } from '@/components/Background';
@@ -17,116 +18,47 @@ export const Features = () => {
         <div className="grid grid-cols-1 gap-x-3 gap-y-8 md:grid-cols-3">
           <FeatureCard
             icon={(
-              <svg
-                className="stroke-primary-foreground stroke-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M0 0h24v24H0z" stroke="none" />
-                <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3M12 12l8-4.5M12 12v9M12 12L4 7.5" />
-              </svg>
+              <Image
+                src="/assets/images/nextjs-boilerplate-saas-landing-page.png"
+                alt="Landing page preview"
+                width={800}
+                height={500}
+                className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
             )}
             title={t('feature1_title')}
           >
-            {t('feature_description')}
+            {t('feature_description1')}
           </FeatureCard>
 
           <FeatureCard
             icon={(
-              <svg
-                className="stroke-primary-foreground stroke-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M0 0h24v24H0z" stroke="none" />
-                <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3M12 12l8-4.5M12 12v9M12 12L4 7.5" />
-              </svg>
+              <Image
+                src="/assets/images/nextjs-boilerplate-saas-user-dashboard.png"
+                alt="Dashboard preview"
+                width={800}
+                height={500}
+                className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
             )}
             title={t('feature2_title')}
           >
-            {t('feature_description')}
+            {t('feature_description2')}
           </FeatureCard>
 
           <FeatureCard
             icon={(
-              <svg
-                className="stroke-primary-foreground stroke-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M0 0h24v24H0z" stroke="none" />
-                <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3M12 12l8-4.5M12 12v9M12 12L4 7.5" />
-              </svg>
+              <Image
+                src="/assets/images/nextjs-boilerplate-saas-multi-tenancy.png"
+                alt="Team management preview"
+                width={800}
+                height={500}
+                className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
             )}
             title={t('feature3_title')}
           >
-            {t('feature_description')}
-          </FeatureCard>
-
-          <FeatureCard
-            icon={(
-              <svg
-                className="stroke-primary-foreground stroke-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M0 0h24v24H0z" stroke="none" />
-                <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3M12 12l8-4.5M12 12v9M12 12L4 7.5" />
-              </svg>
-            )}
-            title={t('feature4_title')}
-          >
-            {t('feature_description')}
-          </FeatureCard>
-
-          <FeatureCard
-            icon={(
-              <svg
-                className="stroke-primary-foreground stroke-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M0 0h24v24H0z" stroke="none" />
-                <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3M12 12l8-4.5M12 12v9M12 12L4 7.5" />
-              </svg>
-            )}
-            title={t('feature5_title')}
-          >
-            {t('feature_description')}
-          </FeatureCard>
-
-          <FeatureCard
-            icon={(
-              <svg
-                className="stroke-primary-foreground stroke-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M0 0h24v24H0z" stroke="none" />
-                <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3M12 12l8-4.5M12 12v9M12 12L4 7.5" />
-              </svg>
-            )}
-            title={t('feature6_title')}
-          >
-            {t('feature_description')}
+            {t('feature_description3')}
           </FeatureCard>
         </div>
       </Section>

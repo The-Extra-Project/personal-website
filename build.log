@@ -1,0 +1,90 @@
+
+> saas-boilerplate@1.7.7 build /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.production, .env
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+[@sentry/nextjs] The Sentry SDK has enabled source map generation for your Next.js app. If you don't want to serve Source Maps to your users, either set the `sourcemaps.deleteSourcemapsAfterUpload` option to true, or manually delete the source maps after the build. In future Sentry SDK versions `sourcemaps.deleteSourcemapsAfterUpload` will default to `true`. If you do not want to generate and upload sourcemaps, set the `sourcemaps.disable` option in `withSentryConfig()`.
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/11) ...
+
+The `locale` parameter in `getRequestConfig` is deprecated, please switch to `await requestLocale`. See https://next-intl.dev/blog/next-intl-3-22#await-request-locale
+
+
+A `locale` is expected to be returned from `getRequestConfig`, but none was returned. This will be an error in the next major version of next-intl.
+
+See: https://next-intl.dev/blog/next-intl-3-22#await-request-locale
+
+TypeError: Cannot read properties of undefined (reading 'S')
+    at pR.exports.pP.exports (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:193:97864)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3913
+    at 18405 (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3951)
+    at Object.t [as require] (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/webpack-runtime.js:1:485)
+    at require (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+    at s (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88330)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98875
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98962
+    at t (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99165) {
+  digest: '283082327'
+}
+
+Error occurred prerendering page "/en". Read more: https://nextjs.org/docs/messages/prerender-error
+
+TypeError: Cannot read properties of undefined (reading 'S')
+    at pR.exports.pP.exports (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:193:97864)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3913
+    at 18405 (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3951)
+    at Object.t [as require] (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/webpack-runtime.js:1:485)
+    at require (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+    at s (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88330)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98875
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98962
+    at t (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99165)
+   Generating static pages (2/11) 
+   Generating static pages (5/11) 
+
+The `locale` parameter in `getRequestConfig` is deprecated, please switch to `await requestLocale`. See https://next-intl.dev/blog/next-intl-3-22#await-request-locale
+
+
+A `locale` is expected to be returned from `getRequestConfig`, but none was returned. This will be an error in the next major version of next-intl.
+
+See: https://next-intl.dev/blog/next-intl-3-22#await-request-locale
+
+TypeError: Cannot read properties of undefined (reading 'S')
+    at pR.exports.pP.exports (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:193:97864)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3913
+    at 18405 (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3951)
+    at Object.t [as require] (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/webpack-runtime.js:1:485)
+    at require (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+    at s (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88330)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98875
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98962
+    at t (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99165) {
+  digest: '283082327'
+}
+
+Error occurred prerendering page "/fr". Read more: https://nextjs.org/docs/messages/prerender-error
+
+TypeError: Cannot read properties of undefined (reading 'S')
+    at pR.exports.pP.exports (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:193:97864)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3913
+    at 18405 (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/app/[locale]/(unauth)/page.js:197:3951)
+    at Object.t [as require] (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/.next/server/webpack-runtime.js:1:485)
+    at require (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+    at s (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88330)
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98875
+    at /Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98962
+    at t (/Users/renu_malik/Desktop/coding_projects/personal_projects/extralabs/SaaS-Boilerplate/node_modules/.pnpm/next@14.2.35_@babel+core@7.29.0_@opentelemetry+api@1.9.0_@playwright+test@1.58.2_react-_487acc8f59a372d3e0c61af5d066cbfb/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99165)
+   Generating static pages (8/11) 
+ ✓ Generating static pages (11/11)
+
+> Export encountered errors on following paths:
+	/[locale]/(unauth)/page: /en
+	/[locale]/(unauth)/page: /fr
+ ELIFECYCLE  Command failed with exit code 1.

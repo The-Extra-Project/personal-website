@@ -49,4 +49,6 @@ local
 
 # vercel
 .vercel
-config.bat
+
+# public vendor portre
+public/vendor/portree/**
