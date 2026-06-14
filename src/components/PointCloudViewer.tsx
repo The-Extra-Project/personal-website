@@ -115,14 +115,13 @@ const wgs84ToLambert93 = (longitude: number, latitude: number) => {
 };
 
 const getLambertBounds = (feature: DalleFeature) => {
+  // The IGN WFS returns geometry already in Lambert-93 (EPSG:2154)
+  // when the query asks for `srsName=urn:ogc:def:crs:EPSG::2154`.
+  // We therefore read the polygon as (x, y) directly without any
+  // re-projection.
   const ring = feature.geometry.coordinates[0] ?? [];
-  const projected = ring.map((vertex) => {
-    const lon = vertex[0] ?? 0;
-    const lat = vertex[1] ?? 0;
-    return wgs84ToLambert93(lon, lat);
-  });
-  const xs = projected.map(p => p.x);
-  const ys = projected.map(p => p.y);
+  const xs = ring.map(vertex => vertex[0] ?? 0);
+  const ys = ring.map(vertex => vertex[1] ?? 0);
   return {
     minX: Math.min(...xs),
     maxX: Math.max(...xs),
@@ -154,13 +153,19 @@ const buildViewerSrc = (feature: DalleFeature, latitude: number, longitude: numb
   return `/ign-ept-viewer.html?${params.toString()}`;
 };
 
-const buildWfsRequestXml = (centerX: number, centerY: number, halfBox: number) => {
+const buildWfsRequestXml = (
+  centerX: number,
+  centerY: number,
+  halfBox: number,
+  startIndex = 0,
+  count = 100,
+) => {
   const minX = Math.round(centerX - halfBox);
   const maxX = Math.round(centerX + halfBox);
   const minY = Math.round(centerY - halfBox);
   const maxY = Math.round(centerY + halfBox);
   return `<?xml version="1.0" encoding="UTF-8"?>
-<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs/2.0" service="WFS" version="2.0.0" count="20">
+<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs/2.0" service="WFS" version="2.0.0" count="${count}" startIndex="${startIndex}">
   <wfs:Query typeNames="${WFS_TYPENAME}" srsName="urn:ogc:def:crs:EPSG::2154">
     <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
       <fes:BBOX>
@@ -230,19 +235,78 @@ const parseWfsXml = (xml: string): WfsCollection => {
 };
 
 /**
- * Pick the published tile whose polygon contains the target
- * coordinate. The polygon coordinates are reported in WGS84
- * (longitude, latitude) by the IGN WFS even though the spatial
- * filter uses Lambert-93. We test the polygon directly so the
- * matching is exact, then we resolve the tile to its Lambert-93
- * bounding box for display.
+ * Page through the WFS result set with `startIndex` so we never miss
+ * the tile that actually contains the target. The WFS sorts the
+ * output by an internal key, so a single `count=100` page can hide
+ * the right tile if it falls past the page boundary.
  */
-const pickClosestFeature = (features: DalleFeature[], longitude: number, latitude: number): DalleFeature | undefined => {
-  let best: DalleFeature | undefined;
-  let bestDistance = Number.POSITIVE_INFINITY;
+const fetchAllNearbyTiles = async (x: number, y: number, halfBox: number): Promise<WfsCollection> => {
+  const collected: DalleFeature[] = [];
+  const pageSize = 100;
+  let startIndex = 0;
+  let totalMatched = Number.POSITIVE_INFINITY;
+  // Hard cap on pages to avoid hammering the IGN service.
+  const maxPages = 6;
+  let pagesFetched = 0;
+
+  while (startIndex < totalMatched && pagesFetched < maxPages) {
+    const xml = buildWfsRequestXml(x, y, halfBox, startIndex, pageSize);
+    const response = await fetch(WFS_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/xml',
+        'Accept': 'application/xml',
+      },
+      body: xml,
+    });
+    if (!response.ok) {
+      throw new Error(`IGN WFS request failed with ${response.status}`);
+    }
+    const text = await response.text();
+    const page = parseWfsXml(text);
+    totalMatched = page.numberMatched ?? page.features.length;
+    for (const f of page.features) {
+      collected.push(f);
+    }
+    if (page.features.length === 0) {
+      break;
+    }
+    startIndex += page.features.length;
+    pagesFetched += 1;
+  }
+  return { features: collected, numberMatched: totalMatched };
+};
+
+/**
+ * Pick the published tile whose Lambert-93 polygon contains the
+ * target coordinate. If no exact match is found we fall back to the
+ * nearest tile (by centroid distance) so the viewer always has
+ * something to stream; the caller can detect the fallback via
+ * `isApproximate` on the returned record.
+ */
+const pickClosestFeature = (
+  features: DalleFeature[],
+  x: number,
+  y: number,
+): { feature: DalleFeature; isApproximate: boolean } | undefined => {
+  let bestExact: DalleFeature | undefined;
+  let bestExactDistance = Number.POSITIVE_INFINITY;
+  let bestNearest: DalleFeature | undefined;
+  let bestNearestDistance = Number.POSITIVE_INFINITY;
   for (const feature of features) {
     const ring = feature.geometry.coordinates[0] ?? [];
     if (ring.length < 3) {
+      continue;
+    }
+    const bounds = getLambertBounds(feature);
+    const cx = (bounds.minX + bounds.maxX) / 2;
+    const cy = (bounds.minY + bounds.maxY) / 2;
+    const distance = Math.hypot(cx - x, cy - y);
+    if (distance < bestNearestDistance) {
+      bestNearestDistance = distance;
+      bestNearest = feature;
+    }
+    if (x < bounds.minX || x > bounds.maxX || y < bounds.minY || y > bounds.maxY) {
       continue;
     }
     let inside = false;
@@ -251,26 +315,24 @@ const pickClosestFeature = (features: DalleFeature[], longitude: number, latitud
       const yi = ring[i]?.[1] ?? 0;
       const xj = ring[j]?.[0] ?? 0;
       const yj = ring[j]?.[1] ?? 0;
-      const intersects = ((yi > latitude) !== (yj > latitude))
-        && (longitude < ((xj - xi) * (latitude - yi)) / ((yj - yi) || Number.EPSILON) + xi);
+      const intersects = ((yi > y) !== (yj > y))
+        && (x < ((xj - xi) * (y - yi)) / ((yj - yi) || Number.EPSILON) + xi);
       if (intersects) {
         inside = !inside;
       }
     }
-    if (!inside) {
-      continue;
-    }
-    const bounds = getLambertBounds(feature);
-    const cx = (bounds.minX + bounds.maxX) / 2;
-    const cy = (bounds.minY + bounds.maxY) / 2;
-    const { x, y } = wgs84ToLambert93(longitude, latitude);
-    const distance = Math.hypot(cx - x, cy - y);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = feature;
+    if (inside && distance < bestExactDistance) {
+      bestExactDistance = distance;
+      bestExact = feature;
     }
   }
-  return best;
+  if (bestExact) {
+    return { feature: bestExact, isApproximate: false };
+  }
+  if (bestNearest) {
+    return { feature: bestNearest, isApproximate: true };
+  }
+  return undefined;
 };
 
 export default function PointCloudViewer() {
@@ -281,6 +343,8 @@ export default function PointCloudViewer() {
   const [viewerSrc, setViewerSrc] = useState('');
   const [selectedFeature, setSelectedFeature] = useState<DalleFeature | null>(null);
   const [selectionError, setSelectionError] = useState<string | null>(null);
+
+  const [isApproximate, setIsApproximate] = useState(false);
 
   const lookupTile = useCallback(async (latitude: number, longitude: number) => {
     setIsCatalogLoading(true);
@@ -294,20 +358,12 @@ export default function PointCloudViewer() {
         return;
       }
       const { x, y } = wgs84ToLambert93(longitude, latitude);
-      const xml = buildWfsRequestXml(x, y, 2500);
-      const response = await fetch(WFS_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/xml',
-          'Accept': 'application/xml',
-        },
-        body: xml,
-      });
-      if (!response.ok) {
-        throw new Error(`IGN WFS request failed with ${response.status}`);
-      }
-      const text = await response.text();
-      const collection = parseWfsXml(text);
+      // 6 km search box: the WFS only returns up to `count` features
+      // per request, so a wider box lets us reach the right tile even
+      // when the target sits within 1-3 km of a tile edge. We then
+      // page through the full result set with `startIndex` so we
+      // never miss the tile that actually covers the target.
+      const collection = await fetchAllNearbyTiles(x, y, 6000);
       if (collection.features.length === 0) {
         setSelectedFeature(null);
         setViewerSrc('');
@@ -317,15 +373,28 @@ export default function PointCloudViewer() {
         );
         return;
       }
-      const match = pickClosestFeature(collection.features, longitude, latitude);
+      const match = pickClosestFeature(collection.features, x, y);
       if (!match) {
         setSelectedFeature(null);
         setViewerSrc('');
-        setSelectionError('A nearby tile was found but it does not cover this exact point.');
+        setSelectionError('No published LiDAR tile was found near this point.');
         return;
       }
-      setSelectedFeature(match);
-      setViewerSrc(buildViewerSrc(match, latitude, longitude));
+      if (match.isApproximate) {
+        // Tile does not cover the target but is the closest one in
+        // the area. Render it anyway so the user sees something, and
+        // inform them with a non-blocking message.
+        setIsApproximate(true);
+        setSelectionError(
+          'No LiDAR tile covers this exact coordinate, but a nearby tile is shown. '
+          + 'The catalog is published progressively; check macarte.ign.fr for current coverage.',
+        );
+      } else {
+        setIsApproximate(false);
+        setSelectionError(null);
+      }
+      setSelectedFeature(match.feature);
+      setViewerSrc(buildViewerSrc(match.feature, latitude, longitude));
     } catch (error) {
       if (error instanceof Error) {
         setCatalogError(error.message);
@@ -342,6 +411,7 @@ export default function PointCloudViewer() {
   }, [lookupTile]);
 
   const handleLocate = () => {
+    setIsApproximate(false);
     const latitude = Number.parseFloat(latitudeInput);
     const longitude = Number.parseFloat(longitudeInput);
 
@@ -395,6 +465,7 @@ export default function PointCloudViewer() {
               type="button"
               className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-sky-400 hover:text-white"
               onClick={() => {
+                setIsApproximate(false);
                 setLatitudeInput(`${location.latitude}`);
                 setLongitudeInput(`${location.longitude}`);
                 lookupTile(location.latitude, location.longitude);
@@ -445,6 +516,11 @@ export default function PointCloudViewer() {
           <p className="font-semibold text-white">
             {selectedFeature ? `Streaming ${selectedFeature.properties.name}` : 'Streaming catalog lookup'}
           </p>
+          {isApproximate && (
+            <p className="mt-1 text-xs leading-5 text-amber-300">
+              Approximate match: target sits outside this tile&apos;s 1 km bounds. The viewer is showing the nearest published tile.
+            </p>
+          )}
           <p className="mt-1 text-xs leading-5 text-slate-300">
             Serverless path: IGN WFS query to COPC point cloud to Potree browser renderer. This keeps the compute cost on static hosting and only streams octree nodes near the active camera.
           </p>
