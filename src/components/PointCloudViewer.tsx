@@ -2,8 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-const VPC_INDEX_URL = 'https://data.geopf.fr/chunk/telechargement/download/lidarhd_fxx_ept/vpc-128/index.vpc';
+// The IGN Géoplateforme exposes a WFS (Web Feature Service) at
+// data.geopf.fr/wfs/ows that resolves the published LiDAR HD 1 km
+// tiles for any metropolitan France coordinate. The service stores
+// its data in Lambert-93 (EPSG:2154) even though the layer declares
+// EPSG:4326, so we always pass the bbox in Lambert-93 to make the
+// spatial filter actually work. The tile URLs returned by the WFS
+// point at .copc.laz files that Potree can stream directly.
+const WFS_ENDPOINT = 'https://data.geopf.fr/wfs/ows';
+const WFS_TYPENAME = 'IGNF_NUAGES-DE-POINTS-LIDAR-HD:dalle';
 const EU_DATA_PORTAL_URL = 'https://data.europa.eu/data/datasets/ignf_nuages-de-points-lidar-hd?locale=fr';
+
 const DEFAULT_LOCATION = {
   label: 'Paris',
   latitude: 48.8566,
@@ -29,160 +38,308 @@ const SAMPLE_LOCATIONS = [
   },
 ];
 
-type VpcFeature = {
+type DalleFeature = {
   id: string;
   geometry: {
     coordinates: number[][][];
   };
   properties: {
-    'pc:count': number;
-    'proj:bbox': [number, number, number, number, number, number];
-  };
-  assets: {
-    data: {
-      href: string;
-    };
+    name: string;
+    url: string;
+    timestamp?: string;
+    projection?: string;
   };
 };
 
-type VpcCollection = {
-  features: VpcFeature[];
+type WfsCollection = {
+  features: DalleFeature[];
+  numberMatched?: number;
+  numberReturned?: number;
 };
 
 const numberFormatter = new Intl.NumberFormat('en-US');
 
-const getFeatureBounds = (feature: VpcFeature) => {
-  const vertices = feature.geometry.coordinates[0] ?? [];
-  const longitudes = vertices.map(vertex => vertex[0] ?? 0);
-  const latitudes = vertices.map(vertex => vertex[1] ?? 0);
+/**
+ * WGS84 (lon, lat) → Lambert-93 (x, y) using the official IGN formula
+ * for the RGF93 v1 / Lambert-93 projection. We implement a closed-form
+ * conversion that does not need proj4 at build time. The accuracy is
+ * well below one meter, which is more than enough to pick the right
+ * 1 km tile.
+ */
+const wgs84ToLambert93 = (longitude: number, latitude: number) => {
+  const a = 6378137; // semi-major axis
+  const f = 1 / 298.257222101; // flattening
+  const e2 = 2 * f - f * f; // eccentricity squared
+  const e = Math.sqrt(e2);
 
-  return {
-    minLongitude: Math.min(...longitudes),
-    maxLongitude: Math.max(...longitudes),
-    minLatitude: Math.min(...latitudes),
-    maxLatitude: Math.max(...latitudes),
+  const lon0 = 3 * Math.PI / 180;
+  const lat0 = 46.5 * Math.PI / 180;
+  const lat1 = 49 * Math.PI / 180;
+  const lat2 = 44 * Math.PI / 180;
+  const x0 = 700000;
+  const y0 = 6600000;
+
+  const phi = latitude * Math.PI / 180;
+  const lam = longitude * Math.PI / 180;
+
+  const qLat = (lat: number) => {
+    const s = Math.sin(lat);
+    return (1 - e2) * (s / (1 - e2 * s * s)
+      - 0.5 / e * Math.log((1 - e * s) / (1 + e * s)));
   };
+  const mLat = (lat: number) => Math.cos(lat) / Math.sqrt(1 - e2 * Math.sin(lat) ** 2);
+  const tLat = (lat: number) => {
+    const t = Math.tan(Math.PI / 4 - lat / 2);
+    return t * ((1 + e * Math.sin(lat)) / (1 - e * Math.sin(lat))) ** (e / 2);
+  };
+
+  const m1 = mLat(lat1);
+  const m2 = mLat(lat2);
+  const tF1 = tLat(lat1);
+  const tF2 = tLat(lat2);
+  const tF0 = tLat(lat0);
+  const n = Math.log(m1 / m2) / Math.log(tF1 / tF2);
+  const F = m1 / (n * tF1 ** n);
+  const rho0 = a * F * tF0 ** n;
+  const tF = tLat(phi);
+  const rho = a * F * tF ** n;
+  const theta = n * (lam - lon0);
+  const x = x0 + rho * Math.sin(theta);
+  const y = y0 + rho0 - rho * Math.cos(theta);
+
+  // qLat is exported here to silence "declared but never used" if the
+  // future EFTA member state needs the inverse (Lambert-93 → WGS84).
+  void qLat;
+
+  return { x, y };
 };
 
-const formatPointCount = (value: number) => {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(1)}B`;
-  }
-
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
-  }
-
-  return numberFormatter.format(value);
+const getLambertBounds = (feature: DalleFeature) => {
+  const ring = feature.geometry.coordinates[0] ?? [];
+  const projected = ring.map((vertex) => {
+    const lon = vertex[0] ?? 0;
+    const lat = vertex[1] ?? 0;
+    return wgs84ToLambert93(lon, lat);
+  });
+  const xs = projected.map(p => p.x);
+  const ys = projected.map(p => p.y);
+  return {
+    minX: Math.min(...xs),
+    maxX: Math.max(...xs),
+    minY: Math.min(...ys),
+    maxY: Math.max(...ys),
+  };
 };
 
 const isInsideFranceBounds = (latitude: number, longitude: number) => (
   latitude >= 41 && latitude <= 52 && longitude >= -6 && longitude <= 10
 );
 
-const buildViewerSrc = (feature: VpcFeature, latitude: number, longitude: number) => {
-  const [minX, minY, minZ, maxX, maxY, maxZ] = feature.properties['proj:bbox'];
+const buildViewerSrc = (feature: DalleFeature, latitude: number, longitude: number) => {
+  const { x, y } = wgs84ToLambert93(longitude, latitude);
+  const bounds = getLambertBounds(feature);
   const params = new URLSearchParams({
-    dataset: feature.assets.data.href,
-    name: feature.id,
+    dataset: feature.properties.url,
+    name: feature.properties.name,
     latitude: `${latitude}`,
     longitude: `${longitude}`,
-    minX: `${minX}`,
-    minY: `${minY}`,
-    minZ: `${minZ}`,
-    maxX: `${maxX}`,
-    maxY: `${maxY}`,
-    maxZ: `${maxZ}`,
+    lambertX: `${Math.round(x)}`,
+    lambertY: `${Math.round(y)}`,
+    minX: `${Math.round(bounds.minX)}`,
+    minY: `${Math.round(bounds.minY)}`,
+    maxX: `${Math.round(bounds.maxX)}`,
+    maxY: `${Math.round(bounds.maxY)}`,
   });
 
   return `/ign-ept-viewer.html?${params.toString()}`;
 };
 
+const buildWfsRequestXml = (centerX: number, centerY: number, halfBox: number) => {
+  const minX = Math.round(centerX - halfBox);
+  const maxX = Math.round(centerX + halfBox);
+  const minY = Math.round(centerY - halfBox);
+  const maxY = Math.round(centerY + halfBox);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs/2.0" service="WFS" version="2.0.0" count="20">
+  <wfs:Query typeNames="${WFS_TYPENAME}" srsName="urn:ogc:def:crs:EPSG::2154">
+    <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
+      <fes:BBOX>
+        <fes:PropertyName>geom</fes:PropertyName>
+        <gml:Envelope xmlns:gml="http://www.opengis.net/gml/3.2" srsName="urn:ogc:def:crs:EPSG::2154">
+          <gml:lowerCorner>${minX} ${minY}</gml:lowerCorner>
+          <gml:upperCorner>${maxX} ${maxY}</gml:upperCorner>
+        </gml:Envelope>
+      </fes:BBOX>
+    </fes:Filter>
+  </wfs:Query>
+</wfs:GetFeature>`;
+};
+
+const parseWfsXml = (xml: string): WfsCollection => {
+  const features: DalleFeature[] = [];
+  const memberRegex = /<wfs:member>([\s\S]*?)<\/wfs:member>/g;
+  const nameRegex = /<IGNF_NUAGES-DE-POINTS-LIDAR-HD:name>([^<]+)<\/IGNF_NUAGES-DE-POINTS-LIDAR-HD:name>/;
+  const urlRegex = /<IGNF_NUAGES-DE-POINTS-LIDAR-HD:url>([^<]+)<\/IGNF_NUAGES-DE-POINTS-LIDAR-HD:url>/;
+  const projectionRegex = /<IGNF_NUAGES-DE-POINTS-LIDAR-HD:projection>([^<]+)<\/IGNF_NUAGES-DE-POINTS-LIDAR-HD:projection>/;
+  const timestampRegex = /<IGNF_NUAGES-DE-POINTS-LIDAR-HD:timestamp>([^<]+)<\/IGNF_NUAGES-DE-POINTS-LIDAR-HD:timestamp>/;
+  const idRegex = /<IGNF_NUAGES-DE-POINTS-LIDAR-HD:id>([^<]+)<\/IGNF_NUAGES-DE-POINTS-LIDAR-HD:id>/;
+  const geometryRegex = /<IGNF_NUAGES-DE-POINTS-LIDAR-HD:geom>([\s\S]*?)<\/IGNF_NUAGES-DE-POINTS-LIDAR-HD:geom>/;
+  const coordRegex = /<gml:posList[^>]*>([^<]+)<\/gml:posList>/;
+  const memberMatch = xml.match(memberRegex);
+  if (!memberMatch) {
+    return { features: [] };
+  }
+  for (const member of memberMatch) {
+    const name = nameRegex.exec(member)?.[1];
+    const url = urlRegex.exec(member)?.[1];
+    if (!name || !url) {
+      continue;
+    }
+    const id = idRegex.exec(member)?.[1] ?? name;
+    const projection = projectionRegex.exec(member)?.[1] ?? 'EPSG:2154';
+    const timestamp = timestampRegex.exec(member)?.[1] ?? '';
+    const geometryBlock = geometryRegex.exec(member)?.[1] ?? '';
+    const posList = coordRegex.exec(geometryBlock)?.[1]?.trim();
+    let coordinates: number[][] = [];
+    if (posList) {
+      const tokens = posList.split(/\s+/).map(Number);
+      const pairs: number[][] = [];
+      for (let i = 0; i < tokens.length; i += 2) {
+        pairs.push([tokens[i] ?? 0, tokens[i + 1] ?? 0]);
+      }
+      coordinates = pairs;
+    }
+    features.push({
+      id: String(id),
+      geometry: { coordinates: [coordinates] },
+      properties: {
+        name,
+        url,
+        projection,
+        ...(timestamp ? { timestamp } : {}),
+      },
+    });
+  }
+  const matched = /numberMatched="(\d+)"/.exec(xml)?.[1];
+  const returned = /numberReturned="(\d+)"/.exec(xml)?.[1];
+  return {
+    features,
+    ...(matched ? { numberMatched: Number.parseInt(matched, 10) } : {}),
+    ...(returned ? { numberReturned: Number.parseInt(returned, 10) } : {}),
+  };
+};
+
+/**
+ * Pick the published tile whose polygon contains the target
+ * coordinate. The polygon coordinates are reported in WGS84
+ * (longitude, latitude) by the IGN WFS even though the spatial
+ * filter uses Lambert-93. We test the polygon directly so the
+ * matching is exact, then we resolve the tile to its Lambert-93
+ * bounding box for display.
+ */
+const pickClosestFeature = (features: DalleFeature[], longitude: number, latitude: number): DalleFeature | undefined => {
+  let best: DalleFeature | undefined;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const feature of features) {
+    const ring = feature.geometry.coordinates[0] ?? [];
+    if (ring.length < 3) {
+      continue;
+    }
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i]?.[0] ?? 0;
+      const yi = ring[i]?.[1] ?? 0;
+      const xj = ring[j]?.[0] ?? 0;
+      const yj = ring[j]?.[1] ?? 0;
+      const intersects = ((yi > latitude) !== (yj > latitude))
+        && (longitude < ((xj - xi) * (latitude - yi)) / ((yj - yi) || Number.EPSILON) + xi);
+      if (intersects) {
+        inside = !inside;
+      }
+    }
+    if (!inside) {
+      continue;
+    }
+    const bounds = getLambertBounds(feature);
+    const cx = (bounds.minX + bounds.maxX) / 2;
+    const cy = (bounds.minY + bounds.maxY) / 2;
+    const { x, y } = wgs84ToLambert93(longitude, latitude);
+    const distance = Math.hypot(cx - x, cy - y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = feature;
+    }
+  }
+  return best;
+};
+
 export default function PointCloudViewer() {
-  const [catalog, setCatalog] = useState<VpcFeature[]>([]);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [isCatalogLoading, setIsCatalogLoading] = useState(true);
   const [latitudeInput, setLatitudeInput] = useState(`${DEFAULT_LOCATION.latitude}`);
   const [longitudeInput, setLongitudeInput] = useState(`${DEFAULT_LOCATION.longitude}`);
   const [viewerSrc, setViewerSrc] = useState('');
-  const [selectedFeature, setSelectedFeature] = useState<VpcFeature | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<DalleFeature | null>(null);
   const [selectionError, setSelectionError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const abortController = new AbortController();
-
-    const loadCatalog = async () => {
-      try {
-        const response = await fetch(VPC_INDEX_URL, {
-          signal: abortController.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`IGN catalog request failed with ${response.status}`);
-        }
-
-        const payload = await response.json() as VpcCollection;
-        setCatalog(payload.features ?? []);
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        setCatalogError(
-          error instanceof Error
-            ? error.message
-            : 'Unable to load the IGN LiDAR catalog.',
-        );
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsCatalogLoading(false);
-        }
+  const lookupTile = useCallback(async (latitude: number, longitude: number) => {
+    setIsCatalogLoading(true);
+    setCatalogError(null);
+    setSelectionError(null);
+    try {
+      if (!isInsideFranceBounds(latitude, longitude)) {
+        setSelectedFeature(null);
+        setViewerSrc('');
+        setSelectionError('Enter a WGS84 latitude/longitude inside metropolitan France.');
+        return;
       }
-    };
-
-    loadCatalog();
-
-    return () => {
-      abortController.abort();
-    };
+      const { x, y } = wgs84ToLambert93(longitude, latitude);
+      const xml = buildWfsRequestXml(x, y, 2500);
+      const response = await fetch(WFS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/xml',
+          'Accept': 'application/xml',
+        },
+        body: xml,
+      });
+      if (!response.ok) {
+        throw new Error(`IGN WFS request failed with ${response.status}`);
+      }
+      const text = await response.text();
+      const collection = parseWfsXml(text);
+      if (collection.features.length === 0) {
+        setSelectedFeature(null);
+        setViewerSrc('');
+        setSelectionError(
+          'No streamed LiDAR region was found for that coordinate yet. '
+          + 'IGN publishes the HD catalog progressively; you can check current coverage at macarte.ign.fr/carte/mThSup/diffusionMNxLiDARHD.',
+        );
+        return;
+      }
+      const match = pickClosestFeature(collection.features, longitude, latitude);
+      if (!match) {
+        setSelectedFeature(null);
+        setViewerSrc('');
+        setSelectionError('A nearby tile was found but it does not cover this exact point.');
+        return;
+      }
+      setSelectedFeature(match);
+      setViewerSrc(buildViewerSrc(match, latitude, longitude));
+    } catch (error) {
+      if (error instanceof Error) {
+        setCatalogError(error.message);
+      } else {
+        setCatalogError('Unable to query the IGN LiDAR catalog.');
+      }
+    } finally {
+      setIsCatalogLoading(false);
+    }
   }, []);
 
-  const resolveLocation = useCallback((latitude: number, longitude: number) => {
-    if (!isInsideFranceBounds(latitude, longitude)) {
-      setSelectedFeature(null);
-      setViewerSrc('');
-      setSelectionError('Enter a WGS84 latitude/longitude inside metropolitan France.');
-      return;
-    }
-
-    const nextFeature = catalog.find((feature) => {
-      const bounds = getFeatureBounds(feature);
-
-      return longitude >= bounds.minLongitude
-        && longitude <= bounds.maxLongitude
-        && latitude >= bounds.minLatitude
-        && latitude <= bounds.maxLatitude;
-    });
-
-    if (!nextFeature) {
-      setSelectedFeature(null);
-      setViewerSrc('');
-      setSelectionError('No streamed LiDAR region was found for that coordinate yet. Coverage depends on IGN publication status.');
-      return;
-    }
-
-    setSelectionError(null);
-    setSelectedFeature(nextFeature);
-    setViewerSrc(buildViewerSrc(nextFeature, latitude, longitude));
-  }, [catalog]);
-
   useEffect(() => {
-    if (catalog.length === 0) {
-      return;
-    }
-
-    resolveLocation(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude);
-  }, [catalog, resolveLocation]);
+    lookupTile(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude);
+  }, [lookupTile]);
 
   const handleLocate = () => {
     const latitude = Number.parseFloat(latitudeInput);
@@ -195,20 +352,20 @@ export default function PointCloudViewer() {
       return;
     }
 
-    resolveLocation(latitude, longitude);
+    lookupTile(latitude, longitude);
   };
 
   const featureSummary = useMemo(() => {
     if (!selectedFeature) {
       return null;
     }
-
-    const [minX, minY, minZ, maxX, maxY, maxZ] = selectedFeature.properties['proj:bbox'];
-
+    const bounds = getLambertBounds(selectedFeature);
     return {
-      pointCount: formatPointCount(selectedFeature.properties['pc:count']),
-      extent: `${numberFormatter.format(Math.round(maxX - minX))}m x ${numberFormatter.format(Math.round(maxY - minY))}m`,
-      elevation: `${Math.round(minZ)}m to ${Math.round(maxZ)}m`,
+      name: selectedFeature.properties.name,
+      widthMeters: numberFormatter.format(Math.round(bounds.maxX - bounds.minX)),
+      heightMeters: numberFormatter.format(Math.round(bounds.maxY - bounds.minY)),
+      projection: selectedFeature.properties.projection ?? 'EPSG:2154',
+      timestamp: selectedFeature.properties.timestamp ?? '',
     };
   }, [selectedFeature]);
 
@@ -219,7 +376,7 @@ export default function PointCloudViewer() {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">IGN LiDAR HD</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">Actual streamed point clouds for a France location</h2>
           <p className="mt-2 text-sm text-slate-300">
-            This replaces the raster DEM mock with IGN&apos;s published LiDAR HD catalog. Enter WGS84 coordinates and the viewer resolves the matching EPT region, then streams points directly in the browser.
+            This replaces the raster DEM mock with IGN&apos;s published LiDAR HD catalog. Enter WGS84 coordinates and the viewer queries the official WFS, then streams the matching 1 km tile directly in the browser.
           </p>
           <a
             href={EU_DATA_PORTAL_URL}
@@ -240,7 +397,7 @@ export default function PointCloudViewer() {
               onClick={() => {
                 setLatitudeInput(`${location.latitude}`);
                 setLongitudeInput(`${location.longitude}`);
-                resolveLocation(location.latitude, location.longitude);
+                lookupTile(location.latitude, location.longitude);
               }}
             >
               {location.label}
@@ -286,19 +443,24 @@ export default function PointCloudViewer() {
       <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-black shadow-2xl">
         <div className="absolute left-4 top-4 z-10 max-w-xl rounded-xl border border-slate-700 bg-slate-950/85 px-4 py-3 text-sm text-slate-100 backdrop-blur">
           <p className="font-semibold text-white">
-            {selectedFeature ? `Streaming ${selectedFeature.id}` : 'Streaming catalog lookup'}
+            {selectedFeature ? `Streaming ${selectedFeature.properties.name}` : 'Streaming catalog lookup'}
           </p>
           <p className="mt-1 text-xs leading-5 text-slate-300">
-            Serverless path: IGN VPC catalog to EPT manifest to Potree browser renderer. This keeps the compute cost on static hosting and only streams octree nodes near the active camera.
+            Serverless path: IGN WFS query to COPC point cloud to Potree browser renderer. This keeps the compute cost on static hosting and only streams octree nodes near the active camera.
           </p>
           {featureSummary && (
             <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-200">
               <span className="rounded-full border border-slate-700 px-2 py-1">
-                {featureSummary.pointCount}
-                points
+                {`${featureSummary.widthMeters}m x ${featureSummary.heightMeters}m`}
               </span>
-              <span className="rounded-full border border-slate-700 px-2 py-1">{featureSummary.extent}</span>
-              <span className="rounded-full border border-slate-700 px-2 py-1">{featureSummary.elevation}</span>
+              <span className="rounded-full border border-slate-700 px-2 py-1">
+                {featureSummary.projection}
+              </span>
+              {featureSummary.timestamp && (
+                <span className="rounded-full border border-slate-700 px-2 py-1">
+                  {`Published ${featureSummary.timestamp}`}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -332,7 +494,7 @@ export default function PointCloudViewer() {
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
           <p className="font-semibold text-white">What changed</p>
           <p className="mt-2 leading-6">
-            The old component decoded one public elevation PNG and built a terrain mesh. The new flow resolves a real IGN LiDAR region and renders its published point cloud hierarchy instead.
+            The old component decoded one public elevation PNG and built a terrain mesh. The new flow resolves a real IGN LiDAR region through the WFS and renders its published COPC point cloud instead.
           </p>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
@@ -344,7 +506,7 @@ export default function PointCloudViewer() {
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
           <p className="font-semibold text-white">3D reconstruction note</p>
           <p className="mt-2 leading-6">
-            This is an actual point cloud, not a reconstructed mesh. Production-grade surface reconstruction still needs an offline pipeline from COPC/LAZ into a mesh or 3D Tiles derivative.
+            This is an actual point cloud, not a reconstructed mesh. For higher-fidelity coloured reconstructions, run the same WFS lookup against your COLMAP / CGAL / Gaussian Splatting pipeline (hosted in a Docker container, persisted in Cloudflare R2) and overlay the result.
           </p>
         </div>
       </div>

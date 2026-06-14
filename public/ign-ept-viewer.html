@@ -79,8 +79,12 @@
     const name = params.get('name') || 'IGN LiDAR HD';
     const latitude = Number.parseFloat(params.get('latitude') || 'NaN');
     const longitude = Number.parseFloat(params.get('longitude') || 'NaN');
-    const minZ = Number.parseFloat(params.get('minZ') || '0');
-    const maxZ = Number.parseFloat(params.get('maxZ') || '0');
+    const lambertX = Number.parseFloat(params.get('lambertX') || 'NaN');
+    const lambertY = Number.parseFloat(params.get('lambertY') || 'NaN');
+    const minX = Number.parseFloat(params.get('minX') || 'NaN');
+    const minY = Number.parseFloat(params.get('minY') || 'NaN');
+    const maxX = Number.parseFloat(params.get('maxX') || 'NaN');
+    const maxY = Number.parseFloat(params.get('maxY') || 'NaN');
     const statusElement = document.getElementById('viewer-status');
 
     const setStatus = (message, isPersistent = false) => {
@@ -108,9 +112,9 @@
 
     viewer.setEDLEnabled(true);
     viewer.setFOV(60);
-    viewer.setPointBudget(1500000);
+    viewer.setPointBudget(2000000);
     viewer.setBackground('gradient');
-    viewer.setDescription('IGN LiDAR HD streamed from EPT');
+    viewer.setDescription('IGN LiDAR HD streamed from COPC');
 
     Potree.loadPointCloud(dataset, name, (event) => {
       viewer.scene.addPointCloud(event.pointcloud);
@@ -121,20 +125,37 @@
       material.shape = Potree.PointShape.SQUARE;
       material.activeAttributeName = 'Classification';
 
-      if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
-        const [x, y] = proj4('EPSG:4326', 'EPSG:2154', [longitude, latitude]);
-        const targetZ = Number.isFinite(minZ) && Number.isFinite(maxZ)
-          ? ((minZ + maxZ) / 2) + 24
-          : 80;
-        const camera = new THREE.Vector3(x - 260, y - 260, targetZ + 180);
+      // Position the camera using the Lambert-93 coordinates that the
+      // parent component forwarded to us. Lambert-93 is the native
+      // projection of the IGN tile, so we use the tile's bounding box
+      // to compute a sensible camera target.
+      const tileCenterX = Number.isFinite(minX) && Number.isFinite(maxX) ? (minX + maxX) / 2 : (Number.isFinite(lambertX) ? lambertX : 0);
+      const tileCenterY = Number.isFinite(minY) && Number.isFinite(maxY) ? (minY + maxY) / 2 : (Number.isFinite(lambertY) ? lambertY : 0);
+      const tileWidth = Number.isFinite(minX) && Number.isFinite(maxX) ? Math.max(maxX - minX, 1) : 1000;
+      const tileHeight = Number.isFinite(minY) && Number.isFinite(maxY) ? Math.max(maxY - minY, 1) : 1000;
 
-        viewer.scene.view.position.set(camera.x, camera.y, camera.z);
-        viewer.scene.view.lookAt(x, y, targetZ);
-      } else {
-        viewer.fitToScreen(0.5);
-      }
+      const cameraDistance = Math.max(tileWidth, tileHeight) * 0.9;
+      const camera = new THREE.Vector3(
+        tileCenterX - cameraDistance * 0.7,
+        tileCenterY - cameraDistance * 0.7,
+        cameraDistance * 0.4,
+      );
+      viewer.scene.view.position.set(camera.x, camera.y, camera.z);
+      viewer.scene.view.lookAt(tileCenterX, tileCenterY, 0);
 
-      setStatus(`Streaming ${name} from IGN EPT`, false);
+      console.info('[IGN EPT viewer]', {
+        latitude,
+        longitude,
+        lambertX,
+        lambertY,
+        tileBounds: { minX, minY, maxX, maxY },
+        camera: { x: camera.x, y: camera.y, z: camera.z },
+      });
+
+      setStatus(`Streaming ${name} from IGN COPC`, false);
+    }, (error) => {
+      setStatus(`Failed to load ${name}: ${error}`, true);
+      console.error('[IGN EPT viewer] loadPointCloud error:', error);
     });
   </script>
 </body>
