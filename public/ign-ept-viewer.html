@@ -49,6 +49,73 @@
     .viewer-status.is-hidden {
       display: none;
     }
+
+    /* Layer Control Panel */
+    .layer-control {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 30;
+      width: 280px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 12px;
+      background: rgba(2, 6, 23, 0.9);
+      color: #e2e8f0;
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+      padding: 16px;
+    }
+
+    .layer-control h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(148, 163, 184, 0.1);
+    }
+
+    .layer-item label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .layer-item input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    .layer-opacity {
+      width: 60px;
+      cursor: pointer;
+    }
+
+    /* Gaussian Splatting Canvas */
+    #gaussian_canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
@@ -68,7 +135,43 @@
 
   <div class="potree_container">
     <div id="potree_render_area"></div>
+    <div class="canvas-container">
+      <canvas id="gaussian_canvas"></canvas>
+    </div>
   </div>
+
+  <!-- Layer Control Panel -->
+  <div id="layer-control" class="layer-control">
+    <h3>Layer Control</h3>
+    <div class="layer-item">
+      <label>
+        <input type="checkbox" id="lidar-layer" checked>
+        <span>LiDAR HD (COPC)</span>
+      </label>
+      <input type="range" id="lidar-opacity" class="layer-opacity" min="0" max="100" value="100">
+    </div>
+    <div class="layer-item">
+      <label>
+        <input type="checkbox" id="gaussian-layer">
+        <span>Gaussian Splatting</span>
+      </label>
+      <input type="range" id="gaussian-opacity" class="layer-opacity" min="0" max="100" value="100" disabled>
+    </div>
+    <div class="layer-item">
+      <label>
+        <input type="checkbox" id="mesh-layer">
+        <span>Mesh (WebODM)</span>
+      </label>
+      <input type="range" id="mesh-opacity" class="layer-opacity" min="0" max="100" value="100" disabled>
+    </div>
+    <div style="margin-top: 12px; font-size: 11px; color: #94a3b8;">
+      <p>Gaussian Splatting: <span id="gaussian-status">Not loaded</span></p>
+      <button id="load-gaussian" style="margin-top: 8px; padding: 6px 12px; background: #0ea5e9; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
+        Load Sample Gaussian Splat
+      </button>
+    </div>
+  </div>
+
   <div id="viewer-status" class="viewer-status">Preparing IGN LiDAR stream...</div>
 
   <script type="module">
@@ -153,10 +256,286 @@
       });
 
       setStatus(`Streaming ${name} from IGN COPC`, false);
+
+      // Initialize layer controls after Potree loads
+      initializeLayerControls(event.pointcloud);
     }, (error) => {
       setStatus(`Failed to load ${name}: ${error}`, true);
       console.error('[IGN EPT viewer] loadPointCloud error:', error);
     });
+
+    // Layer Control Functionality
+    function initializeLayerControls(pointcloud) {
+      const lidarCheckbox = document.getElementById('lidar-layer');
+      const lidarOpacity = document.getElementById('lidar-opacity');
+      const gaussianCheckbox = document.getElementById('gaussian-layer');
+      const gaussianOpacity = document.getElementById('gaussian-opacity');
+      const meshCheckbox = document.getElementById('mesh-layer');
+      const loadGaussianBtn = document.getElementById('load-gaussian');
+      const gaussianStatus = document.getElementById('gaussian-status');
+
+      // LiDAR layer controls
+      lidarCheckbox.addEventListener('change', (e) => {
+        pointcloud.visible = e.target.checked;
+      });
+
+      lidarOpacity.addEventListener('input', (e) => {
+        const opacity = e.target.value / 100;
+        pointcloud.material.opacity = opacity;
+        pointcloud.material.needsUpdate = true;
+      });
+
+      // Gaussian splatting layer controls
+      gaussianCheckbox.addEventListener('change', (e) => {
+        const canvas = document.getElementById('gaussian_canvas');
+        canvas.style.display = e.target.checked ? 'block' : 'none';
+      });
+
+      gaussianOpacity.addEventListener('input', (e) => {
+        const canvas = document.getElementById('gaussian_canvas');
+        canvas.style.opacity = e.target.value / 100;
+      });
+
+      // Load sample Gaussian splat
+      loadGaussianBtn.addEventListener('click', async () => {
+        gaussianStatus.textContent = 'Loading...';
+        loadGaussianBtn.disabled = true;
+
+        try {
+          // Load a sample Gaussian splat file
+          // In production, this would come from the user's reconstruction
+          const splatUrl = '/sample-data/gaussian-splat-example.splat';
+
+          // Initialize Gaussian splatting viewer
+          await initializeGaussianSplatting(splatUrl);
+
+          gaussianStatus.textContent = 'Loaded';
+          gaussianCheckbox.checked = true;
+          gaussianOpacity.disabled = false;
+          document.getElementById('gaussian_canvas').style.display = 'block';
+
+          setStatus('Gaussian splatting layer loaded', false);
+        } catch (error) {
+          gaussianStatus.textContent = 'Failed to load';
+          console.error('[Gaussian Splatting] Load error:', error);
+          setStatus('Failed to load Gaussian splatting', true);
+        } finally {
+          loadGaussianBtn.disabled = false;
+        }
+      });
+    }
+
+    // Gaussian Splatting Viewer Integration
+    async function initializeGaussianSplatting(splatUrl) {
+      const canvas = document.getElementById('gaussian_canvas');
+      const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
+
+      if (!gl) {
+        throw new Error('WebGL not supported');
+      }
+
+      // Resize canvas to match viewer
+      const resizeCanvas = () => {
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+      };
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // Load splat file
+      const response = await fetch(splatUrl);
+      const buffer = await response.arrayBuffer();
+      const splats = parseSplatFile(buffer);
+
+      // Render setup
+      const program = createShaderProgram(gl);
+      const buffers = createBuffers(gl, splats);
+
+      // Camera sync with Potree
+      let cameraParams = {
+        position: new THREE.Vector3(),
+        rotation: new THREE.Quaternion(),
+        fov: 60
+      };
+
+      // Sync camera with Potree viewer
+      const syncCamera = () => {
+        if (viewer && viewer.scene && viewer.scene.view) {
+          const view = viewer.scene.view;
+          cameraParams.position.copy(view.position);
+          cameraParams.rotation.copy(view.rotation);
+          cameraParams.fov = viewer.getFOV();
+        }
+      };
+
+      // Render loop
+      const render = () => {
+        syncCamera();
+
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0); // Transparent background
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.useProgram(program);
+
+        // Set camera uniforms
+        setCameraUniforms(gl, program, cameraParams);
+
+        // Draw splats
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex);
+        gl.drawArrays(gl.POINTS, 0, splats.length);
+
+        requestAnimationFrame(render);
+      };
+
+      render();
+    }
+
+    // Parse .splat file format
+    function parseSplatFile(buffer) {
+      const view = new DataView(buffer);
+      const splats = [];
+
+      // .splat format: each splat is 32 bytes
+      // Position (3 x float32), Scale (3 x float32), Rotation (4 x int8), Color (4 x uint8)
+      for (let i = 0; i < buffer.byteLength; i += 32) {
+        if (i + 32 > buffer.byteLength) break;
+
+        const splat = {
+          x: view.getFloat32(i, true),
+          y: view.getFloat32(i + 4, true),
+          z: view.getFloat32(i + 8, true),
+          scaleX: view.getFloat32(i + 12, true),
+          scaleY: view.getFloat32(i + 16, true),
+          scaleZ: view.getFloat32(i + 20, true),
+          rotW: view.getInt8(i + 24) / 127.0,
+          rotX: view.getInt8(i + 25) / 127.0,
+          rotY: view.getInt8(i + 26) / 127.0,
+          rotZ: view.getInt8(i + 27) / 127.0,
+          r: view.getUint8(i + 28) / 255.0,
+          g: view.getUint8(i + 29) / 255.0,
+          b: view.getUint8(i + 30) / 255.0,
+          a: view.getUint8(i + 31) / 255.0
+        };
+
+        splats.push(splat);
+      }
+
+      return splats;
+    }
+
+    // Create WebGL shader program
+    function createShaderProgram(gl) {
+      const vsSource = `
+        attribute vec3 aPosition;
+        attribute vec3 aScale;
+        attribute vec4 aRotation;
+        attribute vec4 aColor;
+
+        uniform mat4 uProjectionMatrix;
+        uniform mat4 uViewMatrix;
+
+        varying vec4 vColor;
+
+        void main() {
+          vColor = aColor;
+
+          // Apply rotation quaternion to scale
+          // (Simplified - full implementation would apply quaternion rotation)
+          vec4 rotatedPos = vec4(aPosition, 1.0);
+
+          gl_Position = uProjectionMatrix * uViewMatrix * rotatedPos;
+          gl_PointSize = length(aScale) * 10.0;
+        }
+      `;
+
+      const fsSource = `
+        precision mediump float;
+        varying vec4 vColor;
+
+        void main() {
+          gl_FragColor = vColor;
+        }
+      `;
+
+      const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vertexShader, vsSource);
+      gl.compileShader(vertexShader);
+
+      const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fragmentShader, fsSource);
+      gl.compileShader(fragmentShader);
+
+      const program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+
+      return program;
+    }
+
+    // Create WebGL buffers
+    function createBuffers(gl, splats) {
+      const positions = new Float32Array(splats.length * 3);
+      const scales = new Float32Array(splats.length * 3);
+      const rotations = new Float32Array(splats.length * 4);
+      const colors = new Float32Array(splats.length * 4);
+
+      splats.forEach((splat, i) => {
+        positions[i * 3] = splat.x;
+        positions[i * 3 + 1] = splat.y;
+        positions[i * 3 + 2] = splat.z;
+
+        scales[i * 3] = splat.scaleX;
+        scales[i * 3 + 1] = splat.scaleY;
+        scales[i * 3 + 2] = splat.scaleZ;
+
+        rotations[i * 4] = splat.rotW;
+        rotations[i * 4 + 1] = splat.rotX;
+        rotations[i * 4 + 2] = splat.rotY;
+        rotations[i * 4 + 3] = splat.rotZ;
+
+        colors[i * 4] = splat.r;
+        colors[i * 4 + 1] = splat.g;
+        colors[i * 4 + 2] = splat.b;
+        colors[i * 4 + 3] = splat.a;
+      });
+
+      const vertexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+      return { vertex: vertexBuffer };
+    }
+
+    // Set camera uniforms
+    function setCameraUniforms(gl, program, cameraParams) {
+      // Simplified - full implementation would compute projection and view matrices
+      const projectionMatrix = new THREE.Matrix4().makePerspective(
+        cameraParams.fov,
+        canvas.width / canvas.height,
+        0.1,
+        10000
+      );
+
+      const viewMatrix = new THREE.Matrix4()
+        .makeRotationFromQuaternion(cameraParams.rotation)
+        .setPosition(cameraParams.position)
+        .invert();
+
+      gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, 'uProjectionMatrix'),
+        false,
+        projectionMatrix.elements
+      );
+
+      gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, 'uViewMatrix'),
+        false,
+        viewMatrix.elements
+      );
+    }
   </script>
 </body>
 </html>

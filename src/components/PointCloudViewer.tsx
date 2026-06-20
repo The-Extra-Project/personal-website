@@ -150,7 +150,10 @@ const buildViewerSrc = (feature: DalleFeature, latitude: number, longitude: numb
     maxY: `${Math.round(bounds.maxY)}`,
   });
 
-  return `/ign-ept-viewer.html?${params.toString()}`;
+  // The Cesium globe viewer renders the same COPC tile inside a 3D
+  // globe context. The Potree COPC overlay is mounted as a DOM iframe
+  // inside that viewer so the LiDAR stream keeps working.
+  return `/ign-splat-globe.html?${params.toString()}`;
 };
 
 const buildWfsRequestXml = (
@@ -343,7 +346,6 @@ export default function PointCloudViewer() {
   const [viewerSrc, setViewerSrc] = useState('');
   const [selectedFeature, setSelectedFeature] = useState<DalleFeature | null>(null);
   const [selectionError, setSelectionError] = useState<string | null>(null);
-
   const [isApproximate, setIsApproximate] = useState(false);
 
   const lookupTile = useCallback(async (latitude: number, longitude: number) => {
@@ -443,16 +445,16 @@ export default function PointCloudViewer() {
     <section className="mx-auto my-12 w-full max-w-6xl px-4">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">IGN LiDAR HD</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-400">IGN LiDAR HD</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">Actual streamed point clouds for a France location</h2>
-          <p className="mt-2 text-sm text-slate-300">
+          <p className="mt-2 text-sm text-slate-100">
             This replaces the raster DEM mock with IGN&apos;s published LiDAR HD catalog. Enter WGS84 coordinates and the viewer queries the official WFS, then streams the matching 1 km tile directly in the browser.
           </p>
           <a
             href={EU_DATA_PORTAL_URL}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-200 transition hover:border-sky-400 hover:bg-sky-500/20 hover:text-white"
+            className="mt-3 inline-flex rounded-full border border-sky-400 bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-50 transition hover:border-sky-300 hover:bg-sky-500/30 hover:text-white"
           >
             Open the EU LiDAR HD dataset portal
           </a>
@@ -512,39 +514,46 @@ export default function PointCloudViewer() {
       </div>
 
       <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-black shadow-2xl">
-        <div className="absolute left-4 top-4 z-10 max-w-xl rounded-xl border border-slate-700 bg-slate-950/85 px-4 py-3 text-sm text-slate-100 backdrop-blur">
-          <p className="font-semibold text-white">
-            {selectedFeature ? `Streaming ${selectedFeature.properties.name}` : 'Streaming catalog lookup'}
-          </p>
-          {isApproximate && (
-            <p className="mt-1 text-xs leading-5 text-amber-300">
-              Approximate match: target sits outside this tile&apos;s 1 km bounds. The viewer is showing the nearest published tile.
-            </p>
-          )}
-          <p className="mt-1 text-xs leading-5 text-slate-300">
-            Serverless path: IGN WFS query to COPC point cloud to Potree browser renderer. This keeps the compute cost on static hosting and only streams octree nodes near the active camera.
-          </p>
-          {featureSummary && (
-            <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-200">
-              <span className="rounded-full border border-slate-700 px-2 py-1">
-                {`${featureSummary.widthMeters}m x ${featureSummary.heightMeters}m`}
+        {/* Compact property pills — replace the verbose overlay box.
+            Each pill is a single fact about the streaming tile; the
+            Cesium globe viewer underneath carries all spatial state. */}
+        <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap gap-1.5">
+          {selectedFeature && (
+            <>
+              <span className="rounded-full border border-sky-400/40 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-100 backdrop-blur">
+                {selectedFeature.properties.name}
               </span>
-              <span className="rounded-full border border-slate-700 px-2 py-1">
+              {isApproximate && (
+                <span
+                  className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 backdrop-blur"
+                  title="Closest available tile; the exact coordinate is not yet published."
+                >
+                  approximate
+                </span>
+              )}
+            </>
+          )}
+          {featureSummary && (
+            <>
+              <span className="rounded-full border border-slate-700 bg-slate-950/70 px-2.5 py-1 text-[11px] text-slate-200 backdrop-blur">
+                {`${featureSummary.widthMeters}m × ${featureSummary.heightMeters}m`}
+              </span>
+              <span className="rounded-full border border-slate-700 bg-slate-950/70 px-2.5 py-1 text-[11px] text-slate-200 backdrop-blur">
                 {featureSummary.projection}
               </span>
               {featureSummary.timestamp && (
-                <span className="rounded-full border border-slate-700 px-2 py-1">
+                <span className="rounded-full border border-slate-700 bg-slate-950/70 px-2.5 py-1 text-[11px] text-slate-200 backdrop-blur">
                   {`Published ${featureSummary.timestamp}`}
                 </span>
               )}
-            </div>
+            </>
           )}
         </div>
 
         {viewerSrc
           ? (
               <iframe
-                title="IGN LiDAR HD point cloud"
+                title="IGN LiDAR + Gaussian splat globe"
                 src={viewerSrc}
                 className="h-[640px] w-full"
                 loading="lazy"
@@ -564,27 +573,6 @@ export default function PointCloudViewer() {
               : selectionError ?? catalogError}
           </div>
         )}
-      </div>
-
-      <div className="mt-4 grid gap-3 text-sm text-slate-300 md:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-          <p className="font-semibold text-white">What changed</p>
-          <p className="mt-2 leading-6">
-            The old component decoded one public elevation PNG and built a terrain mesh. The new flow resolves a real IGN LiDAR region through the WFS and renders its published COPC point cloud instead.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-          <p className="font-semibold text-white">Why this is cheaper</p>
-          <p className="mt-2 leading-6">
-            No backend conversion, no meshing worker, no PDAL runtime, and no tile preprocessing in your app. Static hosting plus client-side octree streaming is the lowest-friction serverless option.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-          <p className="font-semibold text-white">3D reconstruction note</p>
-          <p className="mt-2 leading-6">
-            This is an actual point cloud, not a reconstructed mesh. For higher-fidelity coloured reconstructions, run the same WFS lookup against your COLMAP / CGAL / Gaussian Splatting pipeline (hosted in a Docker container, persisted in Cloudflare R2) and overlay the result.
-          </p>
-        </div>
       </div>
     </section>
   );

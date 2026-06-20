@@ -19,14 +19,41 @@ const isProtectedRoute = createRouteMatcher([
   '/:locale/dashboard(.*)',
   '/onboarding(.*)',
   '/:locale/onboarding(.*)',
-  '/api(.*)',
-  '/:locale/api(.*)',
+  '/api/waiting-list(.*)',
+  '/:locale/api/waiting-list(.*)',
+  '/api/stripe(.*)',
+  '/:locale/api/stripe(.*)',
+  '/api/organizations(.*)',
+  '/:locale/api/organizations(.*)',
+  '/api/webhooks(.*)',
+  '/:locale/api/webhooks(.*)',
+]);
+
+// Public routes that Clerk middleware should skip entirely. The
+// /api/pointcloud/* endpoints serve the IGN tile cache and the
+// Gaussian splat registry, both of which need to be reachable from
+// the Potree iframe without a Clerk session.
+const isPublicRoute = createRouteMatcher([
+  '/api/pointcloud(.*)',
+  '/:locale/api/pointcloud(.*)',
 ]);
 
 export default function middleware(
   request: NextRequest,
   event: NextFetchEvent,
 ) {
+  // Skip Clerk middleware entirely for public routes — otherwise
+  // Clerk tries to validate the session token on every API call,
+  // which 307-redirects to /sign-in when no token is present.
+  // Also skip the i18n middleware for /api/* so API routes are
+  // reachable at their canonical (non-localized) path.
+  if (isPublicRoute(request)) {
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+      return NextResponse.next();
+    }
+    return intlMiddleware(request);
+  }
+
   if (
     request.nextUrl.pathname.includes('/sign-in')
     || request.nextUrl.pathname.includes('/sign-up')

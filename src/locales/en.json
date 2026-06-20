@@ -136,5 +136,28 @@
     "message_title": "Message",
     "message_description": "Enter a detailed message for your todo.",
     "submit_button": "Submit"
+  },
+  "WaitingList": {
+    "eyebrow": "PRIVATE BETA",
+    "title": "Join the waiting list",
+    "description": "Drop your details and we will send an invite once your region is on the rollout plan.",
+    "fields": {
+      "name": "Full name",
+      "email": "Work email",
+      "organization": "Organization (optional)"
+    },
+    "placeholders": {
+      "name": "Jane Doe",
+      "email": "jane@acme.com",
+      "organization": "Acme Corp"
+    },
+    "submit": "Reserve my spot",
+    "submitting": "Sending…",
+    "success_message": "You are on the list. We will email you as soon as your region opens up.",
+    "errors": {
+      "name_required": "Please enter your name.",
+      "email_invalid": "Please enter a valid email address.",
+      "generic": "Something went wrong. Please try again later."
+    }
   }
 }

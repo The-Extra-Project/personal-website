@@ -136,5 +136,28 @@
     "message_title": "Message",
     "message_description": "Enter a detailed message for your todo.",
     "submit_button": "Submit"
+  },
+  "WaitingList": {
+    "eyebrow": "BÊTA PRIVÉE",
+    "title": "Rejoignez la liste d'attente",
+    "description": "Laissez-nous vos coordonnées et nous vous enverrons une invitation dès que votre région sera dans le plan de déploiement.",
+    "fields": {
+      "name": "Nom complet",
+      "email": "Email professionnel",
+      "organization": "Organisation (optionnel)"
+    },
+    "placeholders": {
+      "name": "Jane Doe",
+      "email": "jane@acme.com",
+      "organization": "Acme Corp"
+    },
+    "submit": "Réserver ma place",
+    "submitting": "Envoi…",
+    "success_message": "Vous êtes sur la liste. Nous vous écrirons dès que votre région sera disponible.",
+    "errors": {
+      "name_required": "Veuillez saisir votre nom.",
+      "email_invalid": "Veuillez saisir une adresse email valide.",
+      "generic": "Une erreur est survenue. Merci de réessayer plus tard."
+    }
   }
 }

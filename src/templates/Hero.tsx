@@ -1,9 +1,9 @@
-import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useTranslations } from 'next-intl';
 
 import { buttonVariants } from '@/components/ui/buttonVariants';
 import { CenteredHero } from '@/features/landing/CenteredHero';
 import { Section } from '@/features/landing/Section';
+import { WaitingListForm } from '@/features/landing/WaitingListForm';
 
 export const Hero = () => {
   const t = useTranslations('Hero');
@@ -22,7 +22,7 @@ export const Hero = () => {
           <>
             <a
               className={buttonVariants({ variant: 'default', size: 'lg' })}
-              href="https://forms.gle/MDxBV7ATX3DAEJRi7"
+              href="#waiting-list"
             >
               {t('primary_button')}
             </a>
@@ -33,17 +33,12 @@ export const Hero = () => {
             >
               {t('secondary_button')}
             </a>
-
-            <a
-              className={buttonVariants({ size: 'lg' })}
-              href="https://nextjs-boilerplate.com/nextjs-multi-tenant-saas-boilerplate"
-            >
-              {t('primary_button')}
-              <ArrowRightIcon className="ml-1 size-5" />
-            </a>
           </>
         )}
       />
+      <div id="waiting-list" className="mt-12 flex justify-center">
+        <WaitingListForm />
+      </div>
     </Section>
   );
 };
