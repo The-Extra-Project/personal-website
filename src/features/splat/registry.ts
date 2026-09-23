@@ -20,7 +20,7 @@ export type SplatSource = 'clip' | 'panoramax' | 'mapillary' | 'youtube';
  * version when the assets change.
  */
 export const SPLAT_BASE_URL
-  = process.env.NEXT_PUBLIC_SPLAT_BASE_URL ?? 'https://storage.googleapis.com/meghdoot-viewer-public/v2';
+  = process.env.NEXT_PUBLIC_SPLAT_BASE_URL ?? 'https://storage.googleapis.com/meghdoot-viewer-public/v3';
 
 export type SplatSceneMeta = {
   id: string;

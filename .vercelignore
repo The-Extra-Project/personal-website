@@ -1,0 +1,51 @@
+# Vercel upload scope.
+#
+# This repo carries the whole offline reconstruction workspace, and the tree is
+# ~6 GB. Only the Next app is deployed; everything the build never reads is
+# excluded here so the upload stays small (without this the CLI tried to push
+# 2.4 GB and failed mid-transfer).
+#
+# The splat viewer does NOT need public/drone: the worlds are served from GCS at
+# runtime (see src/features/splat/registry.ts), so the local copies are dead
+# weight in a deployment.
+
+# offline workspaces / not part of the Next build
+services
+vendor
+venv-3dgs
+sample-data
+docs
+public-deleted
+.draft-images
+.playwright-mcp
+.metals
+.draft
+draft
+
+# large local assets (splats come from GCS)
+public/drone
+public/vendor
+
+# capture / media artefacts at the repo root
+*.mov
+*.mp4
+*.tar
+*.tgz
+*.copc.laz
+*.laz
+*.las
+
+# build + tool caches
+.next
+node_modules
+.turbo
+coverage
+playwright-report
+test-results
+.vscode
+
+# logs and scratch output
+*.log
+build.log
+opensplat-training.log
+err-wasure-log.txt

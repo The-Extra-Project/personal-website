@@ -170,7 +170,7 @@ export default function SimPage() {
 
         <div className="sim-progress">
           <div className="sim-progress-bar" aria-hidden>
-            <span style={{ width: `${Math.round((trailSections / TRAIL_SECTION_TOTAL) * 100)}%` }} />
+            <span style={{ transform: `scaleX(${trailSections / TRAIL_SECTION_TOTAL})` }} />
           </div>
           <p className="sim-progress-note">
             {trailSections}
