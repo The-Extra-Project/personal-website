@@ -1,0 +1,60 @@
+{
+  "jobs": [
+    {
+      "id": "roche-tortue",
+      "raw": "gs://meghdoot-artifacts/etl/src/roche-tortue.ply",
+      "box": "-400,-400,-400,400,400,400",
+      "cluster": "4.0,0.999,0.15",
+      "decimate": "45%",
+      "yaw": -35.0
+    },
+    {
+      "id": "trail-ascent",
+      "raw": "gs://meghdoot-artifacts/etl/src/trail-ascent.ply",
+      "box": "-400,-400,-400,400,400,400",
+      "cluster": "4.0,0.999,0.15",
+      "decimate": "45%",
+      "yaw": 20.0
+    },
+    {
+      "id": "croix-lorraine",
+      "raw": "gs://meghdoot-artifacts/etl/src/croix-lorraine.ply",
+      "box": "-400,-400,-400,400,400,400",
+      "cluster": "4.0,0.999,0.15",
+      "decimate": "45%",
+      "yaw": 180.0
+    },
+    {
+      "id": "pano-06d14b03",
+      "raw": "gs://meghdoot-artifacts/etl/src/pano-06d14b03.ply",
+      "box": "-400,-400,-400,400,400,400",
+      "cluster": "4.0,0.999,0.15",
+      "decimate": "45%",
+      "yaw": 0.0
+    },
+    {
+      "id": "pano-175106e9",
+      "raw": "gs://meghdoot-artifacts/etl/src/pano-175106e9.ply",
+      "box": "-400,-400,-400,400,400,400",
+      "cluster": "4.0,0.999,0.15",
+      "decimate": "45%",
+      "yaw": 0.0
+    },
+    {
+      "id": "yt-seg11",
+      "raw": "gs://meghdoot-artifacts/etl/src/yt-seg11.ply",
+      "box": "-200,-200,-200,200,200,200",
+      "cluster": "2.0,0.999,0.15",
+      "decimate": "45%",
+      "yaw": 0.0
+    },
+    {
+      "id": "a2-roche-tortue",
+      "raw": "gs://meghdoot-artifacts/etl/a2-roche/v00.ply|t=0.0,0,0;gs://meghdoot-artifacts/etl/a2-roche/v01.ply|t=0.7,0,0;gs://meghdoot-artifacts/etl/a2-roche/v02.ply|t=1.4,0,0;gs://meghdoot-artifacts/etl/a2-roche/v03.ply|t=2.0999999999999996,0,0",
+      "box": "-400,-400,-400,400,400,400",
+      "cluster": "4.0,0.999,0.15",
+      "decimate": "12%",
+      "yaw": -35.0
+    }
+  ]
+}
