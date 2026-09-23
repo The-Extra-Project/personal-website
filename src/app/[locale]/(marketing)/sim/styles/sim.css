@@ -1,0 +1,232 @@
+/* src/app/[locale]/(marketing)/sim/styles/sim.css */
+/* Layout for the OpenStreetMap + Lyra world simulation viewer. */
+
+.sim-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+}
+
+.sim-map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.sim-panel {
+  overflow-y: auto;
+  background: #0b0f14;
+  color: #e6e6e6;
+  padding: 16px 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  border-left: 1px solid #1d2733;
+}
+
+.sim-panel h1 {
+  font-size: 14px;
+  margin: 0 0 4px;
+  letter-spacing: 0.02em;
+}
+
+.sim-sub {
+  margin: 0 0 14px;
+  opacity: 0.6;
+  font-size: 11px;
+}
+
+.sim-err {
+  color: #e74c3c;
+}
+
+.sim-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sim-list li {
+  border: 1px solid #1d2733;
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #111823;
+}
+
+.sim-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sim-status {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.sim-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #95a5a6;
+  display: inline-block;
+}
+
+.sim-dot[data-status='ok'] {
+  background: #2ecc71;
+}
+
+.sim-dot[data-status='pending'] {
+  background: #f39c12;
+}
+
+.sim-dot[data-status='error'] {
+  background: #e74c3c;
+}
+
+.sim-label {
+  margin-top: 6px;
+  opacity: 0.9;
+}
+
+.sim-meta {
+  margin-top: 4px;
+  opacity: 0.55;
+  font-size: 11px;
+}
+
+.sim-pending {
+  display: inline-block;
+  margin-top: 6px;
+  opacity: 0.5;
+}
+
+.sim-panel a {
+  display: inline-block;
+  margin-top: 6px;
+  color: #6cb6ff;
+}
+
+.sim-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 12px;
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.sim-toggle input {
+  accent-color: #f39c12;
+}
+
+/* anchored portal preview */
+.sim-portal-canvas { position: absolute; inset: 0; }
+
+/* selectable scene rows */
+.sim-pick {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sim-pick:hover {
+  background: rgba(60, 110, 170, 0.18);
+}
+
+.sim-list li.is-selected .sim-pick {
+  background: rgba(70, 140, 220, 0.22);
+}
+
+.sim-open {
+  display: inline-block;
+  margin: 2px 8px 8px;
+  font-size: 11px;
+  color: #9ecbff;
+  text-decoration: none;
+}
+
+.sim-open:hover {
+  text-decoration: underline;
+}
+
+/* progress readout — the panel's job is to say where the survey stands */
+.sim-progress {
+  margin: 0 0 14px;
+}
+
+.sim-progress-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: #1d2733;
+  overflow: hidden;
+}
+
+.sim-progress-bar span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #2ecc71, #6cb6ff);
+  /* scaleX, not width: animating width re-lays out every frame */
+  transition: transform 400ms ease;
+}
+
+.sim-progress-note {
+  margin: 6px 0 0;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* pipeline disclosure — collapsed by default so the list stays the focus */
+.sim-pipeline {
+  margin: 0 0 14px;
+  border: 1px solid #1d2733;
+  border-radius: 6px;
+  background: #0f151d;
+  padding: 8px 10px;
+}
+
+.sim-pipeline summary {
+  cursor: pointer;
+  opacity: 0.75;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.sim-pipeline summary:hover {
+  opacity: 1;
+}
+
+.sim-pipeline ol {
+  margin: 8px 0 2px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+.sim-foot {
+  margin: 16px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #1d2733;
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+.sim-foot a {
+  color: #6cb6ff;
+  text-decoration: none;
+}
