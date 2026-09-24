@@ -6,14 +6,17 @@ import { useEffect } from 'react';
 
 export default function GlobalError(props: {
   error: Error & { digest?: string };
-  params: { locale: string };
+  // A global error boundary is rendered outside the [locale] segment, so it
+  // receives no route params. Reading props.params.locale here threw a
+  // TypeError that masked whatever error actually brought us to this boundary.
+  params?: { locale: string };
 }) {
   useEffect(() => {
     Sentry.captureException(props.error);
   }, [props.error]);
 
   return (
-    <html lang={props.params.locale}>
+    <html lang={props.params?.locale ?? 'en'}>
       <body>
         {/* `NextError` is the default Next.js error page component. Its type
         definition requires a `statusCode` prop. However, since the App Router
