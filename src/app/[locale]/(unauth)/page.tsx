@@ -158,7 +158,11 @@ const IndexPage = (props: { params: { locale: string } }) => {
 
   return (
     <div className={`sv ${surveyUi.variable} ${surveyData.variable}`}>
-      <script type="application/ld+json">{JSON.stringify(JSON_LD)}</script>
+      { }
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
 
       <header className="sv-head">
         <div className="sv-shell sv-head-in">
