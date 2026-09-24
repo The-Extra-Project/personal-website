@@ -1,10 +1,36 @@
 import '@/styles/global.css';
 
 import type { Metadata } from 'next';
+import { Archivo, JetBrains_Mono, Public_Sans } from 'next/font/google';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { unstable_setRequestLocale } from 'next-intl/server';
 
 import { AllLocales } from '@/utils/AppConfig';
+
+// Self-hosted at build by next/font: no render-blocking third party and no
+// layout shift. Archivo carries the display voice, Public Sans the reading
+// text, and JetBrains Mono is reserved for measurement, where tabular figures
+// are the point rather than the style.
+const display = Archivo({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const text = Public_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-text',
+  display: 'swap',
+});
+
+const data = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-data',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   icons: [
@@ -51,7 +77,10 @@ export default function RootLayout(props: {
   // which dynamically adds a `style` attribute to the body tag.
   return (
     <html lang={props.params.locale} suppressHydrationWarning>
-      <body className="bg-background text-foreground antialiased" suppressHydrationWarning>
+      <body
+        className={`${display.variable} ${text.variable} ${data.variable} bg-background font-sans text-foreground antialiased`}
+        suppressHydrationWarning
+      >
         {/* PRO: Dark mode support for Shadcn UI */}
         <NextIntlClientProvider
           locale={props.params.locale}

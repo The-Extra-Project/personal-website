@@ -17,9 +17,9 @@
   --ink: #e9eff5;
   --ink-mid: #a7b8c6;
   --ink-dim: #6f8496;
-  --signal: #ffb02e;
-  --signal-dim: rgba(255, 176, 46, 0.16);
-  --link: #57c4ff;
+  --signal: #2dd4bf;
+  --signal-dim: rgba(45, 212, 191, 0.16);
+  --link: #34d399;
 
   --gut: clamp(1rem, 3vw, 3.5rem);
   --stack: clamp(4.5rem, 9vw, 9rem);
@@ -28,6 +28,8 @@
   min-height: 100vh;
   background-color: var(--ground);
   color: var(--ink);
+  --font-survey-ui: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-survey-data: var(--font-data), ui-monospace, monospace;
   font-family: var(--font-survey-ui), ui-sans-serif, system-ui, sans-serif;
   font-synthesis-weight: none;
   -webkit-font-smoothing: antialiased;
@@ -39,7 +41,7 @@
    share one pitch so the field is square rather than banded. */
 .sv::before {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 0;

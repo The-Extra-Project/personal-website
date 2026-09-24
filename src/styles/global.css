@@ -32,6 +32,35 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
+    /* ---- Brand: geospatial ----------------------------------------------
+       The palette comes from the subject — terrain, canopy, survey — rather
+       than from a tech-gradient. Teal through emerald is the single accent;
+       the survey greens are the roadmap's own ramp, promoted from literals
+       so no component hardcodes a hex. Deep navy is the section ground that
+       already existed as `bg-slate-800`. */
+    --accent: 173.8 80.4% 40.2%;
+    --accent-foreground: 0 0% 100%;
+    --accent-strong: 160.1 84.1% 39.4%;
+
+    --teal-50: 166 76% 97%;
+    --teal-100: 167 85% 89%;
+    --teal-300: 172 66% 68%;
+    --teal-500: 172 66% 50%;
+    --teal-700: 175 84% 32%;
+    --teal-900: 176 61% 19%;
+
+    --emerald-50: 152 81% 96%;
+    --emerald-300: 158 64% 66%;
+    --emerald-500: 160 84% 39%;
+    --emerald-700: 163 94% 24%;
+
+    --surface-navy: 222.2 47.4% 11.2%;
+    --surface-navy-foreground: 210 40% 98%;
+
+    --roadmap-done: 108 19% 56%;
+    --roadmap-now: 108 27% 67%;
+    --roadmap-next: 108 33% 75%;
+
     --radius: 0.5rem;
   }
 
@@ -63,6 +92,32 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Brand tokens, retuned for a dark ground: the accent lifts one stop so it
+       still clears contrast against near-black, and the navy "section" ground
+       becomes a raised surface instead of a contrasting one. */
+    --accent: 172 66% 50%;
+    --accent-foreground: 176 61% 12%;
+    --accent-strong: 158 64% 66%;
+
+    --teal-50: 176 61% 19%;
+    --teal-100: 175 84% 32%;
+    --teal-300: 172 66% 50%;
+    --teal-500: 172 66% 68%;
+    --teal-700: 167 85% 89%;
+    --teal-900: 166 76% 97%;
+
+    --emerald-50: 163 94% 24%;
+    --emerald-300: 160 84% 39%;
+    --emerald-500: 158 64% 66%;
+    --emerald-700: 152 81% 96%;
+
+    --surface-navy: 217.2 32.6% 17.5%;
+    --surface-navy-foreground: 210 40% 98%;
+
+    --roadmap-done: 108 19% 42%;
+    --roadmap-now: 108 27% 55%;
+    --roadmap-next: 108 33% 68%;
   }
 }
 

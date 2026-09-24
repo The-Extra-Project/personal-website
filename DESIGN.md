@@ -86,3 +86,44 @@ has been certified.
 ## Ownership
 
 Extralabs. Product: `PRODUCT.md`. Surface briefs: `.impeccable/surfaces/`.
+
+---
+
+## Update — one app, two surfaces (company shell + instrument stage)
+
+The product surface previously owned `/` with its own dark instrument world (near-black
+ground, amber signal). That read as a product page and never gave the company's big picture.
+The app now has a **company shell** that owns the light surfaces, with the instrument kept as a
+deliberate dark stage inside it.
+
+**Colour** — derived from the incumbent scheme rather than invented:
+
+| role | token | value |
+|---|---|---|
+| page ground | `--background` | white / `secondary` grey for alternating bands |
+| deep section ground | `--surface-navy` | `222.2 47.4% 11.2%` (`#0f172a`) |
+| accent | `--accent` | `173.8 80.4% 40.2%` — teal |
+| accent strong | `--accent-strong` | `160.1 84.1% 39.4%` — emerald |
+| roadmap states | `--roadmap-{done,now,next}` | the three greens already in the roadmap bar |
+| instrument signal | `--signal` (survey.css) | `#2dd4bf` (was amber `#ffb02e`) |
+
+The indigo → purple → pink gradient is **retired**. It was the strongest "AI tell" on the page
+and the repo's own audit flagged it as critical. Section subtitles are now solid and quiet,
+`CTABanner` uses the navy surface, and `FeatureCard` / `Sponsors` / `StickyBanner` use the accent.
+
+**Type** — declared once in `src/app/[locale]/layout.tsx`, self-hosted by `next/font`:
+Archivo (`--font-display`) for headings, Public Sans (`--font-text`) for reading, JetBrains Mono
+(`--font-data`) for measurement only. The instrument's faces alias onto these, so nothing
+declares a font twice.
+
+**Structure** — `src/features/site/` holds the shared shell (`SiteNav`, `SiteFooter`,
+`SiteShell`) and the light `AccessForm`. Surfaces:
+
+- `/` company story (hero, what we are, proof, services, projects, roadmap, partners, team, access)
+- `/platform` the instrument — dark stage inside the light shell
+- `/sim`, `/sim/[world]` live reconstructions
+- `/faq` real answers (previously 404 — the core site linked to it)
+
+**Imagery** — real reconstruction renders in `public/site/` (deploy-safe), never boilerplate
+stock. The instrument's graticule is now `position: absolute` within the sheet rather than
+viewport-fixed, so it cannot bleed over the light chrome.
