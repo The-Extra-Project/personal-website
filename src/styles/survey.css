@@ -1,0 +1,916 @@
+/* src/styles/survey.css
+ *
+ * The landing page's world: a geodetic survey sheet.
+ *
+ * Ground is a graticule — ruled because the subject is an instrument reading,
+ * not because a grid looked technical. Ink is rationed: everything structural
+ * is a hairline in one cool neutral, and only two things carry colour, the live
+ * epoch (signal amber) and links (cold cyan). Type is a technical grotesque for
+ * language and a real monospace for measurement, with tabular figures.
+ */
+
+.sv {
+  --ground: #0a0d11;
+  --ground-raise: #0e1319;
+  --rule: rgba(150, 183, 209, 0.16);
+  --rule-strong: rgba(150, 183, 209, 0.32);
+  --ink: #e9eff5;
+  --ink-mid: #a7b8c6;
+  --ink-dim: #6f8496;
+  --signal: #ffb02e;
+  --signal-dim: rgba(255, 176, 46, 0.16);
+  --link: #57c4ff;
+
+  --gut: clamp(1rem, 3vw, 3.5rem);
+  --stack: clamp(4.5rem, 9vw, 9rem);
+
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-survey-ui), ui-sans-serif, system-ui, sans-serif;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* The graticule. A square ruling anchored to the sheet's own content measure:
+   the verticals land on the content edges and its quarter lines, and both axes
+   share one pitch so the field is square rather than banded. */
+.sv::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  --measure: calc((min(1320px, 100vw) - 2 * var(--gut)) / 4);
+  --origin: calc(max(0px, (100vw - 1320px) / 2) + var(--gut));
+  background-image:
+    linear-gradient(to right, var(--rule) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+  background-size: var(--measure) var(--measure);
+  background-position: var(--origin) 0;
+}
+
+.sv > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------------------------------------------------------- browser surfaces */
+/* The parts nobody draws still belong to the world. */
+
+.sv ::selection {
+  background: var(--signal);
+  color: #12100a;
+}
+
+.sv {
+  caret-color: var(--signal);
+  scrollbar-color: var(--rule-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.sv a:focus-visible,
+.sv button:focus-visible,
+.sv input:focus-visible,
+.sv [tabindex]:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ---------------------------------------------------------------- shell */
+
+.sv-shell {
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: var(--gut);
+}
+
+.sv-band {
+  border-top: 1px solid var(--rule);
+  padding-block: var(--stack);
+}
+
+/* ---------------------------------------------------------------- type */
+
+.sv-mono {
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+}
+
+.sv-h2 {
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.026em;
+  font-weight: 560;
+  margin: 0;
+  max-width: 26ch;
+  text-wrap: balance;
+}
+
+.sv-lede {
+  font-size: clamp(1rem, 1.25vw, 1.2rem);
+  line-height: 1.62;
+  color: var(--ink-mid);
+  max-width: 68ch;
+  margin: 0;
+}
+
+.sv-body {
+  line-height: 1.68;
+  color: var(--ink-mid);
+  max-width: 70ch;
+  margin: 0;
+}
+
+.sv-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  font-weight: 540;
+}
+
+.sv-link {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, var(--link) 40%, transparent);
+}
+
+.sv-link:hover {
+  text-decoration-color: currentcolor;
+}
+
+/* ---------------------------------------------------------------- header */
+
+.sv-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--rule);
+  background: var(--ground);
+}
+
+.sv-head-in {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 60px;
+}
+
+.sv-mark {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 1.02rem;
+}
+
+.sv-mark span {
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  font-weight: 500;
+}
+
+.sv-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  font-size: 0.86rem;
+}
+
+.sv-nav a {
+  color: var(--ink-mid);
+  text-decoration: none;
+}
+
+.sv-nav a:hover {
+  color: var(--ink);
+}
+
+/* The nav's link colour must not win over the button's own ink — the amber
+   ground needs the near-black foreground for contrast. */
+.sv-nav a.sv-btn,
+.sv-nav a.sv-btn:hover {
+  color: #12100a;
+}
+
+/* Below the sheet's natural width the title block runs to two lines rather
+   than clipping the nav — everything stays reachable. */
+@media (width <= 900px) {
+  .sv-head-in {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding-block: 0.6rem;
+  }
+
+  .sv-nav {
+    margin-left: 0;
+    width: 100%;
+    flex-wrap: wrap;
+    row-gap: 0.55rem;
+    gap: 0.8rem 1.05rem;
+    font-size: 0.8rem;
+  }
+
+  .sv-nav .sv-btn {
+    padding: 0.6rem 0.95rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (width <= 480px) {
+  .sv-mark span {
+    display: none;
+  }
+
+  .sv-readout dt {
+    font-size: 0.6rem;
+    letter-spacing: 0.09em;
+  }
+
+  .sv-readout dd {
+    font-size: 0.94rem;
+  }
+
+  .sv-readout > div {
+    padding: 0.7rem 0.65rem 0.75rem;
+  }
+}
+
+/* The plot is a fixed viewBox that scales with its container, so its labels
+   scale down with it. Push the type back up at the small end. */
+@media (width <= 900px) {
+  .sv-plot text {
+    font-size: 15px;
+  }
+
+  .sv-plot .stn-name {
+    font-size: 16px;
+  }
+
+  .sv-plot .stn-delta {
+    font-size: 14.5px;
+  }
+}
+
+/* ---------------------------------------------------------------- controls */
+
+.sv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--signal);
+  background: var(--signal);
+  color: #12100a;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  border-radius: 3px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sv-btn:hover {
+  background: #ffc45c;
+}
+
+.sv-btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+.sv-btn-ghost:hover {
+  background: rgba(150, 183, 209, 0.09);
+}
+
+.sv-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- station record */
+
+.sv-record {
+  border: 1px solid var(--rule-strong);
+  border-radius: 14px;
+  background: var(--ground-raise);
+  padding: 1.5rem 1.6rem 1.4rem;
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.9);
+}
+
+.sv-record-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sv-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.sv-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 3px var(--signal-dim);
+}
+
+.sv-stamp {
+  margin-left: auto;
+  font-size: 0.76rem;
+  color: var(--ink-mid);
+  letter-spacing: 0.05em;
+}
+
+.sv-designation {
+  display: block;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  color: var(--signal);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.sv-sigil {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+.sv-station-name {
+  font-size: clamp(1.85rem, 3.7vw, 3.3rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 560;
+  margin: 0.9rem 0 0;
+  max-width: 24ch;
+  /* Balance inflates a short heading like this to five ragged lines. */
+  text-wrap: pretty;
+}
+
+.sv-readout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 1.35rem;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sv-readout > div {
+  background: var(--ground-raise);
+  padding: 0.85rem 0.9rem 0.9rem;
+}
+
+.sv-readout dt {
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 0 0 0.45rem;
+}
+
+.sv-readout dd {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--ink);
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.sv-readout dd em {
+  font-style: normal;
+  font-size: 0.72em;
+  color: var(--ink-dim);
+  margin-left: 0.3em;
+}
+
+.sv-moved {
+  color: var(--signal);
+}
+
+/* ---------------------------------------------------------------- epoch control */
+
+.sv-epoch {
+  margin-top: 1.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+}
+
+.sv-epoch-track {
+  display: flex;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sv-epoch-track button {
+  flex: 1;
+  appearance: none;
+  border: 0;
+  background: var(--ground-raise);
+  color: var(--ink-mid);
+  padding: 0.62rem 0.4rem;
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition:
+    background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sv-epoch-track button:hover {
+  color: var(--ink);
+  background: #131a22;
+}
+
+.sv-epoch-track button[aria-pressed='true'] {
+  background: var(--signal-dim);
+  color: var(--signal);
+  box-shadow: inset 0 -2px 0 var(--signal);
+}
+
+.sv-epoch-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+
+/* ---------------------------------------------------------------- the plot */
+
+.sv-plot {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.sv-plot text {
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  fill: var(--ink-dim);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+
+.sv-plot .stn-name {
+  fill: var(--ink-mid);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+
+.sv-plot .stn-name-active {
+  fill: var(--ink);
+}
+
+.sv-plot .stn-delta {
+  fill: var(--signal);
+  font-size: 10px;
+}
+
+.sv-plot .baseline {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.sv-plot .sight {
+  stroke: var(--rule);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.sv-plot .arc {
+  fill: none;
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.sv-plot .mark {
+  fill: var(--ground);
+  stroke: var(--ink-mid);
+  stroke-width: 1.4;
+}
+
+.sv-plot .mark-active {
+  fill: var(--signal);
+  stroke: var(--signal);
+}
+
+.sv-plot .mark-hit {
+  cursor: pointer;
+}
+
+.sv-plot .mark-hit:hover + .mark,
+.sv-plot .stn-hit:hover .mark {
+  stroke: var(--signal);
+}
+
+/* ---------------------------------------------------------------- coordinate rail */
+
+.sv-rail {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: var(--ground-raise);
+}
+
+.sv-rail-in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2.4rem;
+  padding-block: 0.85rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-dim);
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.sv-rail-in b {
+  color: var(--ink-mid);
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------- hero grid */
+
+.sv-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 32rem) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: start;
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+@media (width <= 1040px) {
+  .sv-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sv-hero-plot {
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--ground-raise);
+  padding: 1rem 1rem 0.5rem;
+}
+
+/* ---------------------------------------------------------------- the split */
+
+.sv-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.4fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: start;
+}
+
+@media (width <= 940px) {
+  .sv-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------- pipeline chain */
+
+.sv-chain {
+  border-top: 1px solid var(--rule);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sv-chain li {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) minmax(0, 15rem);
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+@media (width <= 760px) {
+  .sv-chain li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4rem;
+  }
+}
+
+.sv-chain .n {
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--signal);
+}
+
+.sv-chain .t {
+  font-size: 1.02rem;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+
+.sv-chain .d {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+/* ---------------------------------------------------------------- services ledger */
+
+/* Cells draw their own hairlines as inset shadows, and the container carries
+   the cell ground. With auto-fit a trailing row leaves tracks unpainted, so a
+   transparent container would show a darker hole where the page rules run
+   through the grid. */
+.sv-ledger {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0;
+  background: var(--ground-raise);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sv-ledger li {
+  background: var(--ground-raise);
+  padding: 1.1rem 1.15rem 1.2rem;
+  box-shadow: inset -1px -1px 0 var(--rule);
+}
+
+.sv-ledger h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  font-weight: 560;
+  color: var(--ink);
+}
+
+.sv-ledger p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+.sv-ledger .src {
+  display: block;
+  margin-top: 0.7rem;
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- roster */
+
+.sv-roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0;
+  background: var(--ground-raise);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sv-roster li {
+  background: var(--ground-raise);
+  padding: 1.4rem 1.3rem 1.5rem;
+  box-shadow: inset -1px -1px 0 var(--rule);
+}
+
+.sv-roster .role {
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+
+.sv-roster .who {
+  margin: 0.6rem 0 0.5rem;
+  font-size: 1.22rem;
+  letter-spacing: -0.02em;
+  font-weight: 560;
+  color: var(--ink);
+}
+
+.sv-roster .what {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--ink-mid);
+}
+
+/* ---------------------------------------------------------------- close */
+
+.sv-close {
+  border: 1px solid var(--rule-strong);
+  border-radius: 14px;
+  background: var(--ground-raise);
+  padding: clamp(1.75rem, 4vw, 3rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+@media (width <= 860px) {
+  .sv-close {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sv-foot {
+  border-top: 1px solid var(--rule);
+  padding-block: 2rem 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  align-items: baseline;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+}
+
+.sv-foot a {
+  color: var(--ink-mid);
+  text-decoration: none;
+}
+
+.sv-foot a:hover {
+  color: var(--ink);
+}
+
+.sv-note {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  max-width: 74ch;
+}
+
+/* ---------------------------------------------------------------- access form */
+
+/* A region of the closing panel, not a card inside one: hairline top rule,
+   mono labels, tabular inputs, one amber primary. */
+.sv-form {
+  border-top: 1px solid var(--rule);
+  padding-top: 1.4rem;
+}
+
+.sv-form-title {
+  margin: 0;
+  font-size: 1.02rem;
+  letter-spacing: -0.012em;
+  font-weight: 560;
+  color: var(--ink);
+}
+
+.sv-form-desc {
+  margin: 0.45rem 0 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-mid);
+}
+
+.sv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.sv-input {
+  appearance: none;
+  width: 100%;
+  background: var(--ground);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  padding: 0.6rem 0.7rem;
+  color: var(--ink);
+  font-family: var(--font-survey-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.86rem;
+  transition: border-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sv-input::placeholder {
+  color: var(--ink-dim);
+}
+
+.sv-input:hover {
+  border-color: var(--ink-dim);
+}
+
+.sv-input:focus {
+  border-color: var(--signal);
+}
+
+.sv-form-error {
+  margin: 0 0 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--signal);
+  border-radius: 3px;
+  background: var(--signal-dim);
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.sv-form-ok {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.sv-btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------- hero action */
+
+.sv-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* ---------------------------------------------------------------- epoch restate */
+
+/* One authored moment: when the epoch is pulled, the values on the sheet
+   restate rather than swapping silently. */
+.sv-restate {
+  animation: sv-restate 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sv-restate {
+  0% {
+    color: var(--signal);
+    opacity: 0.35;
+    transform: translateY(-2px);
+  }
+
+  100% {
+    color: inherit;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sv-plot .sv-restate {
+  animation: none;
+}
+
+/* ---------------------------------------------------------------- motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .sv *,
+  .sv *::before,
+  .sv *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
