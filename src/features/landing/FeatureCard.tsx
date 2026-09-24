@@ -10,7 +10,7 @@ export const FeatureCard = (props: {
 
     <div className="mt-4 text-lg font-bold">{props.title}</div>
 
-    <div className="my-3 w-8 border-t border-purple-400" />
+    <div className="my-3 w-8 border-t border-accent" />
 
     <div className="mt-2 text-muted-foreground">{props.children}</div>
   </div>

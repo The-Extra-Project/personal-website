@@ -10,7 +10,7 @@ export const Sponsors = () => {
       <h2 className="mb-10 text-2xl font-bold">{t('title')}</h2>
       <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-3">
         {/* Région Île-de-France */}
-        <div className="flex h-32 items-center justify-center rounded-2xl border border-border/75 bg-background/95 p-6 shadow-md transition-all hover:border-purple-500/30 hover:shadow-lg">
+        <div className="flex h-32 items-center justify-center rounded-2xl border border-border/75 bg-background/95 p-6 shadow-md transition-all hover:border-accent/40 hover:shadow-lg">
           <svg className="h-14 w-auto" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 8L23 23L37 20L27 28L34 41L23 33L16 43L18 28L7 24L18 20L20 8Z" fill="#E05B35" />
             <text x="50" y="30" fontFamily="system-ui, sans-serif" fontWeight="800" fontSize="19" className="fill-slate-900 dark:fill-white">Région</text>
@@ -19,7 +19,7 @@ export const Sponsors = () => {
         </div>
 
         {/* Protocol Labs */}
-        <div className="flex h-32 items-center justify-center rounded-2xl border border-border/75 bg-background/95 p-6 shadow-md transition-all hover:border-purple-500/30 hover:shadow-lg">
+        <div className="flex h-32 items-center justify-center rounded-2xl border border-border/75 bg-background/95 p-6 shadow-md transition-all hover:border-accent/40 hover:shadow-lg">
           <svg className="h-14 w-auto" viewBox="0 0 220 50" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M15 5L30 13.5V30.5L15 39L0 30.5V13.5L15 5Z" className="fill-blue-600/10 stroke-blue-600 dark:fill-blue-400/10 dark:stroke-blue-400" strokeWidth="2" />
             <path d="M15 5V39" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2" />
@@ -30,7 +30,7 @@ export const Sponsors = () => {
         </div>
 
         {/* IGN France */}
-        <div className="flex h-32 items-center justify-center rounded-2xl border border-border/75 bg-background/95 p-6 shadow-md transition-all hover:border-purple-500/30 hover:shadow-lg">
+        <div className="flex h-32 items-center justify-center rounded-2xl border border-border/75 bg-background/95 p-6 shadow-md transition-all hover:border-accent/40 hover:shadow-lg">
           <svg className="h-14 w-auto" viewBox="0 0 140 50" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="20" cy="25" r="18" fill="#10B981" />
             <text x="20" y="30" fontFamily="system-ui, sans-serif" fontWeight="900" fontSize="14" fill="#FFFFFF" textAnchor="middle" letterSpacing="0.05em">IGN</text>

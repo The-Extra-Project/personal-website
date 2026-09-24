@@ -1,5 +1,6 @@
 /* eslint-disable ts/no-require-imports */
 import type { Config } from 'tailwindcss';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
 const config = {
   darkMode: ['class'],
@@ -31,6 +32,7 @@ const config = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
+          strong: 'hsl(var(--accent-strong))',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
@@ -40,6 +42,37 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        /* The section ground that already existed as `bg-slate-800`. */
+        navy: {
+          DEFAULT: 'hsl(var(--surface-navy))',
+          foreground: 'hsl(var(--surface-navy-foreground))',
+        },
+        /* Brand ramps. These intentionally replace Tailwind's generic teal and
+           emerald: the subject is terrain, and the palette should be ours. */
+        teal: {
+          50: 'hsl(var(--teal-50))',
+          100: 'hsl(var(--teal-100))',
+          300: 'hsl(var(--teal-300))',
+          500: 'hsl(var(--teal-500))',
+          700: 'hsl(var(--teal-700))',
+          900: 'hsl(var(--teal-900))',
+        },
+        emerald: {
+          50: 'hsl(var(--emerald-50))',
+          300: 'hsl(var(--emerald-300))',
+          500: 'hsl(var(--emerald-500))',
+          700: 'hsl(var(--emerald-700))',
+        },
+        roadmap: {
+          done: 'hsl(var(--roadmap-done))',
+          now: 'hsl(var(--roadmap-now))',
+          next: 'hsl(var(--roadmap-next))',
+        },
+      },
+      fontFamily: {
+        sans: ['var(--font-text)', ...defaultTheme.fontFamily.sans],
+        display: ['var(--font-display)', ...defaultTheme.fontFamily.sans],
+        mono: ['var(--font-data)', ...defaultTheme.fontFamily.mono],
       },
       borderRadius: {
         lg: 'var(--radius)',
