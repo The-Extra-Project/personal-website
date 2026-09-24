@@ -137,8 +137,7 @@ export function NetworkPlot({
             y={(a.y + b.y) / 2 - 5}
             textAnchor="middle"
           >
-            {metres}
-            {' m'}
+            {`${metres} m`}
           </text>
         ))}
 
@@ -176,11 +175,7 @@ export function NetworkPlot({
 
         return (
           <g key={n.id} className="stn-hit" onClick={() => onSelect(n.id)}>
-            <title>
-              {n.id}
-              {' — '}
-              {s?.name}
-            </title>
+            <title>{`${n.id} — ${s?.name ?? ''}`}</title>
             {/* generous invisible hit target */}
             <circle cx={n.x} cy={n.y} r="18" fill="transparent" />
             <circle className={active ? 'mark mark-active' : 'mark'} cx={n.x} cy={n.y} r={active ? 6 : 4.5} />
@@ -196,11 +191,7 @@ export function NetworkPlot({
             {moved
               ? (
                   <text className="stn-delta" x={n.labelX} y={deltaY} textAnchor={n.anchor}>
-                    Δ
-                    {' '}
-                    {s!.delta > 0 ? '+' : '−'}
-                    {Math.abs(s!.delta).toFixed(3)}
-                    {' m'}
+                    {`Δ ${s!.delta > 0 ? '+' : '−'}${Math.abs(s!.delta).toFixed(3)} m`}
                   </text>
                 )
               : null}
